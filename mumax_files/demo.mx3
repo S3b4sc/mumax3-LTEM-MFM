@@ -1,0 +1,33 @@
+// Skyrmion / domain texture demo
+
+SetGridsize(50, 50, 1)          // larger grid to allow textures to form
+SetCellsize(2e-9, 2e-9, 1e-9)     // small cell size for good resolution (nm)
+
+Msat  = 580e3                     // saturation magnetization (A/m)
+Aex   = 15e-12                    // exchange stiffness (J/m)
+alpha = 0.3                       // damping
+gammaLL = 2.211e5                 // gyromagnetic ratio
+
+// DMI strength (interfacial)
+Dind = 3e-1                       // J/m^2, try 1e-3 – 4e-3 for skyrmions
+
+// Uniaxial anisotropy
+Ku1  = 0.8e6                      // anisotropy constant (J/m^3)
+anisU = vector(0, 0, 1)           // easy axis along z
+
+// External magnetic field
+B_ext = vector(0, 0, 0.4)         // Tesla, stabilizes skyrmions
+
+// Initial magnetization: random to allow textures
+m = RandomMag()
+
+// Relax the system
+Minimize()
+
+// Save final state
+SaveAs(m, "final.ovf")
+
+// Export slices for visualization (LTEM/MFM post-processing)
+//TableAdd(mz)                      // out-of-plane component
+//Save(m)
+
