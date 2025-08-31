@@ -3,7 +3,7 @@
 //CPU info: 12th Gen Intel(R) Core(TM) i7-12650H, Cores: 10, MHz: 400.000
 //GPU info: NVIDIA GeForce RTX 4050 Laptop GPU(5770MB), CUDA Driver 12.9, cc=8.9, using cc=89 PTX
 //OS  info: Ubuntu 22.04.5 LTS, Hostname: santiago-Thin
-//Timestamp: 2025-08-28 22:29:53
+//Timestamp: 2025-08-30 19:57:51
 //(c) Arne Vansteenkiste, Dynamat LAB, Ghent University, Belgium
 //This is free software without any warranty. See license.txt
 //********************************************************************//
@@ -11,16 +11,17 @@
 //  we kindly ask you to cite the references in references.bib        //
 //********************************************************************//
 //output directory: ./mumax_files/demo.out/
-SetGridsize(50, 50, 1)
+SetGridsize(100, 100, 1)
 SetCellsize(2e-9, 2e-9, 1e-9)
+SetPBC(1, 1, 0)
+//resizing...
 Msat = 580e3
 Aex = 15e-12
-alpha = 0.3
-gammaLL = 2.211e5
-Dind = 3e-1
-Ku1 = 0.8e6
+alpha = 0.8
+Dind = 3.5e-3
+Ku1 = 6.0e5
 anisU = vector(0, 0, 1)
-B_ext = vector(0, 0, 0.4)
+B_ext = vector(0, 0, 0.5)
 m = RandomMag()
 Minimize()
 SaveAs(m, "final.ovf")
@@ -28,6 +29,6 @@ SaveAs(m, "final.ovf")
 //Please cite the following references, relevant for your simulation. //
 //See bibtex file in output folder for justification.                 //
 //********************************************************************//
+//   * Vansteenkiste et al., AIP Adv. 4, 107133 (2014).
 //   * Exl et al., J. Appl. Phys. 115, 17D118 (2014).
 //   * Mulkers et al., Phys. Rev. B 95, 144401 (2017).
-//   * Vansteenkiste et al., AIP Adv. 4, 107133 (2014).

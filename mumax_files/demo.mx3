@@ -1,25 +1,29 @@
 // Skyrmion / domain texture demo
 
-SetGridsize(50, 50, 1)          // larger grid to allow textures to form
+SetGridsize(100, 100, 1)          // larger grid to allow textures to form
+//setgridsize(256, 128, 1)
 SetCellsize(2e-9, 2e-9, 1e-9)     // small cell size for good resolution (nm)
+SetPBC(1,1,0)                     // Periodic Boundary Conditions
 
 Msat  = 580e3                     // saturation magnetization (A/m)
 Aex   = 15e-12                    // exchange stiffness (J/m)
-alpha = 0.3                       // damping
-gammaLL = 2.211e5                 // gyromagnetic ratio
+alpha = 0.8                       // damping
+//gammaLL = 2.211e5                 // gyromagnetic ratio
 
 // DMI strength (interfacial)
-Dind = 3e-1                       // J/m^2, try 1e-3 – 4e-3 for skyrmions
+Dind = 3.5e-3                       // J/m^2, try 1e-3 – 4e-3 for skyrmions
 
 // Uniaxial anisotropy
-Ku1  = 0.8e6                      // anisotropy constant (J/m^3)
+Ku1  = 6.0e5                      // anisotropy constant (J/m^3)
 anisU = vector(0, 0, 1)           // easy axis along z
 
 // External magnetic field
-B_ext = vector(0, 0, 0.4)         // Tesla, stabilizes skyrmions
+B_ext = vector(0, 0, 0.5)         // Tesla, stabilizes skyrmions
 
 // Initial magnetization: random to allow textures
 m = RandomMag()
+//m = BlochSkyrmion(1, -1).scale(3,3,1)
+//saveas(m, "final")
 
 // Relax the system
 Minimize()
