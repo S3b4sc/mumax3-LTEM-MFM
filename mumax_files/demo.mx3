@@ -1,7 +1,6 @@
 // Skyrmion / domain texture demo
 
 SetGridsize(100, 100, 1)          // larger grid to allow textures to form
-//setgridsize(256, 128, 1)
 SetCellsize(2e-9, 2e-9, 1e-9)     // small cell size for good resolution (nm)
 SetPBC(1,1,0)                     // Periodic Boundary Conditions
 
@@ -20,10 +19,11 @@ anisU = vector(0, 0, 1)           // easy axis along z
 // External magnetic field
 B_ext = vector(0, 0, 0.5)         // Tesla, stabilizes skyrmions
 
+// Temperature
+Temp = 200       // Kelvin
+
 // Initial magnetization: random to allow textures
 m = RandomMag()
-//m = BlochSkyrmion(1, -1).scale(3,3,1)
-//saveas(m, "final")
 
 // Relax the system
 Minimize()
@@ -31,7 +31,4 @@ Minimize()
 // Save final state
 SaveAs(m, "final.ovf")
 
-// Export slices for visualization (LTEM/MFM post-processing)
-//TableAdd(mz)                      // out-of-plane component
-//Save(m)
 

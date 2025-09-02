@@ -1,4 +1,4 @@
-from python_scripts import read_plot, input_menu, generate_ltem_image
+from python_scripts import read_plot, input_menu, generate_ltem_image, start_image_gen, gen_ltem_dataset
 import subprocess
 
 
@@ -31,3 +31,9 @@ if __name__ == '__main__':
 
         # Convert mumax ovf output to npy file
         subprocess.run(['mumax3-convert', '-png','./mumax_files/demo.out/final.ovf'])
+
+    elif usrChoice == 4:
+        start_image_gen()
+
+    elif usrChoice == 5:
+        gen_ltem_dataset()

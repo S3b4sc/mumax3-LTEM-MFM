@@ -8,10 +8,10 @@ def input_menu():
     ----------------------------------------------------------------------------------------
     
     1   Run and visualize Mumax simulation from demo.mx3
-    2   Run LTEM simulation from existing output demo.mx3
-    3   Run MFM simulation from .mx3 
-    4   
-    5   
+    2   Run one LTEM simulation from existing output demo.mx3
+    3   Run one MFM simulation from .mx3 
+    4   Generate final ovf files fro all combinations of parameters
+    5   Generate LTEM images from output of option 4
     6   
     7   
     8   
