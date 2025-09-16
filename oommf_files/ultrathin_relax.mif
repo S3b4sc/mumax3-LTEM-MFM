@@ -1,0 +1,82 @@
+# MIF 2.1
+# Simple ultrathin film relaxation
+
+# For running
+# GUI  			oommf.tcl mmDisp
+# Code   		oommf.tcl boxsi myfile.mif
+
+# ------------------------------------------------------------
+# Geometry atlas (the film region)
+# ------------------------------------------------------------
+Specify Oxs_BoxAtlas:atlas {
+    xrange { 0 200e-9 }
+    yrange { 0 200e-9 }
+    zrange { 0 1e-9 }
+}
+
+# ------------------------------------------------------------
+# Mesh discretization
+# ------------------------------------------------------------
+Specify Oxs_RectangularMesh:mesh {
+    cellsize { 2e-9 2e-9 1e-9 }
+    atlas :atlas
+}
+
+# ------------------------------------------------------------
+# Material parameters
+# ------------------------------------------------------------
+Specify Oxs_UniformExchange { A 15e-12 }
+
+Specify Oxs_Demag { }
+
+Specify Oxs_UniaxialAnisotropy { 
+    K1 6.0e5 
+    axis {0 0 1} }
+
+
+#uniform DMI is used here
+Specify Oxs_DMExchange6Ngbr:DMEx [subst {
+  default_D 3.5e-3
+  atlas :atlas
+  D {
+   universe universe 3.5e-3
+  }
+}]
+
+
+# Saturation magnetization (uniform)
+Specify Oxs_UniformScalarField:Ms { value 8e5 }
+
+# ------------------------------------------------------------
+# Initial magnetization
+# ------------------------------------------------------------
+#Specify Oxs_UniformVectorField:m0 { vector {1 0 0} }
+Specify Oxs_RandomVectorField:m0 {
+    min_norm 1
+    max_norm 1
+}
+
+# ------------------------------------------------------------
+# Driver: relaxation (energy minimization)
+# ------------------------------------------------------------
+Specify Oxs_RungeKuttaEvolve:rk4 {
+    method rkf54
+    alpha 0.5
+    gamma_G 2.21e5
+}
+
+
+Specify Oxs_TimeDriver {
+    evolver :rk4
+    mesh :mesh
+    Ms :Ms
+    m0 :m0
+    stopping_time 1e-9
+}
+
+
+# === Output destinations ===
+Destination sim_output mmArchive
+
+Schedule DataTable sim_output Step 1
+Schedule Oxs_TimeDriver::Magnetization sim_output Stage 1

@@ -2,6 +2,9 @@
 images 
 # Text output files/ ovf files
 logs
+# oommf output files
+*.omf 
+*.odt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

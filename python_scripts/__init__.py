@@ -1,4 +1,4 @@
 from .read_plot_npy import read_plot
 from .menu import input_menu
 from .gen_ltem import generate_ltem_image, gen_ltem_dataset
-from .gen_dataset import start_image_gen
+from .gen_dataset import start_ovfs_gen

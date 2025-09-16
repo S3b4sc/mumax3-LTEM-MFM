@@ -57,7 +57,7 @@ def log(msg: str, level: str = "INFO", run_id: Optional[int] = None) -> None:
     print(f"{prefix}: {msg}")
 
 # -------------------------
-# Helpers (kept function names)
+#          Helpers 
 # -------------------------
 def write_mx3_file(path: Path, params: Dict[str, Any], max_time: float,
                    autosave_interval: float, tableautosave_interval: float,
@@ -88,7 +88,8 @@ autosave(m, {autosave_interval})
 
 // random init & run
 m = RandomMag()
-run({max_time})
+{ "relax()" if params.get("relax_mode", False) else f"run({max_time})" }
+//{ "Minimize()" if params.get("relax_mode", False) else f"run({max_time})" }
 SaveAs(m, "final.ovf")
 """
     path.write_text(mx3)
@@ -137,9 +138,9 @@ def read_table_last_entries(table_file: Path, nrows: int = 300) -> Optional[pd.D
         return None
 
 # -------------------------
-# Main sweep function (kept name)
+#   Main sweep function 
 # -------------------------
-def start_image_gen():
+def start_ovfs_gen():
     """
     Main driver — same name as original. Produces CSV log at `log_csv`.
     """
@@ -161,6 +162,7 @@ def start_image_gen():
                         "alpha": param_grid["alpha"][0],
                         "B_ext": B,
                         "Msat": param_grid["Msat"][0],
+                        "relax_mode": True
                     }
 
                     run_dir = output_base / f"run_{run_id}"
@@ -175,59 +177,60 @@ def start_image_gen():
                     log(f"Starting run (Dind={D}, Ku1={Ku1}, trial={trial}) -> {run_dir}", level="INFO", run_id=run_id)
 
                     # Launch mumax3 with its output dir set to run_dir
-                    proc = subprocess.Popen(["mumax3", "-o", str(run_dir), str(mx3_path)],
-                                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                    proc = subprocess.Popen(["mumax3", "-o", str(run_dir), str(mx3_path)],stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                    #subprocess.run(['mumax3', "-o", str(run_dir), str(mx3_path)], text=True)
 
                     # Monitoring loop: poll table file while process runs
                     table_file = run_dir / "table.txt"
                     converged = False
                     cutoff = 1   # default assume cut off (did not converge before max_time)
                     stable_counter = 0
-                    last_t = None
-                    last_E = None
-                    last_torque = None
 
                     try:
                         while True:
                             ret = proc.poll()
                             df = read_table_last_entries(table_file, nrows=200)
                             if df is not None and df.shape[0] > 0:
-                                # find time/torque/energy columns (same heuristics you used)
-                                time_col = df.columns[0]
-                                torque_col = None
-                                energy_col = None
-                                for c in df.columns:
-                                    cn = str(c).lower()
-                                    if "torque" in cn:
-                                        torque_col = c
-                                    if "e_" in cn or "energy" in cn:
-                                        energy_col = c
-                                if torque_col is None:
-                                    candidates = [c for c in df.columns if "max" in str(c).lower() and "torque" in str(c).lower()]
-                                    torque_col = candidates[0] if candidates else None
-                                if energy_col is None:
-                                    candidates = [c for c in df.columns if "e_total" in str(c).lower() or "etotal" in str(c).lower()]
-                                    energy_col = candidates[0] if candidates else None
+                                # find time/torque/energy columns 
+                                last_t = df['t (s)'].values[-1]
+                                last_torque = df['maxTorque (T)'].values[-1]
+                                last_E = df['E_total (J)'].values[-1]
 
-                                last_row = df.iloc[-1]
-                                try:
-                                    last_t = float(last_row[time_col])
-                                except Exception:
-                                    try:
-                                        last_t = float(df.index[-1])
-                                    except Exception:
-                                        last_t = last_t
+                                #time_col = df.columns[0]
+                                #torque_col = None
+                                #energy_col = None
+                                #for c in df.columns:
+                                #    cn = str(c).lower()
+                                #    if "torque" in cn:
+                                #        torque_col = c
+                                #    if "e_" in cn or "energy" in cn:
+                                #        energy_col = c
+                                #if torque_col is None:
+                                #    candidates = [c for c in df.columns if "max" in str(c).lower() and "torque" in str(c).lower()]
+                                #    torque_col = candidates[0] if candidates else None
+                                #if energy_col is None:
+                                #    candidates = [c for c in df.columns if "e_total" in str(c).lower() or "etotal" in str(c).lower()]
+                                #    energy_col = candidates[0] if candidates else None
 
-                                if torque_col is not None:
-                                    try:
-                                        last_torque = float(last_row[torque_col])
-                                    except Exception:
-                                        last_torque = last_torque
-                                if energy_col is not None:
-                                    try:
-                                        last_E = float(last_row[energy_col])
-                                    except Exception:
-                                        last_E = last_E
+                                #last_row = df.iloc[-1]
+                                #try:
+                                #    last_t = float(last_row[time_col])
+                                #except Exception:
+                                #    try:
+                                #        last_t = float(df.index[-1])
+                                #    except Exception:
+                                #        last_t = last_t
+#
+                                #if torque_col is not None:
+                                #    try:
+                                #        last_torque = float(last_row[torque_col])
+                                #    except Exception:
+                                #        last_torque = last_torque
+                                #if energy_col is not None:
+                                #    try:
+                                #        last_E = float(last_row[energy_col])
+                                #    except Exception:
+                                #        last_E = last_E
 
                                 # convergence check using torque
                                 if last_torque is not None:
@@ -265,14 +268,14 @@ def start_image_gen():
                                 proc.kill()
 
                         # capture stdout/stderr (optional, helps debugging)
-                        try:
-                            out, err = proc.communicate(timeout=0.1)
-                        except Exception:
-                            out, err = ("","")
-                        if out:
-                            (run_dir / "stdout.txt").write_text(out)
-                        if err:
-                            (run_dir / "stderr.txt").write_text(err)
+                        #try:
+                        #    out, err = proc.communicate(timeout=0.1)
+                        #except Exception:
+                        #    out, err = ("","")
+                        #if out:
+                        #    (run_dir / "stdout.txt").write_text(out)
+                        #if err:
+                        #    (run_dir / "stderr.txt").write_text(err)
 
                     # After MuMax finished, capture final table entries (one last attempt)
                     df_final = read_table_last_entries(table_file, nrows=10000)
@@ -280,46 +283,7 @@ def start_image_gen():
                     last_t = df_final['t (s)'].values[-1]
                     last_torque = df_final['maxTorque (T)'].values[-1]
                     last_E = df_final['E_total (J)'].values[-1]
-                    print(last_t,last_E,last_torque)
 
-                    #if df_final is not None and df_final.shape[0] > 0:
-                    #    last_row = df_final.iloc[-1]
-#
-                    #    tcol = df_final.columns[0]
-                    #    torque_col = 'maxTorque (T)'
-                    #    energy_col = 'E_total (J)'
-                    #    #for c in df_final.columns:
-                    #    #    cn = str(c).lower()
-                    #    #    if "torque" in cn:
-                    #    #        torque_col = c
-                    #    #    if "e_" in cn or "energy" in cn:
-                    #    #        energy_col = c
-#
-                    #    #if torque_col is None:
-                    #    #    candidates = [c for c in df_final.columns if "max" in str(c).lower() and "torque" in str(c).lower()]
-                    #    #    #torque_col = candidates[0] if candidates else None
-                    #    #if energy_col is None:
-                    #    #    candidates = [c for c in df_final.columns if "e_total" in str(c).lower() or "etotal" in str(c).lower()]
-                    #    #    #energy_col = candidates[0] if candidates else None
-#
-                    #    try:
-                    #        last_t = float(last_row[tcol])
-                    #    except Exception:
-                    #        pass
-                    #    if torque_col is not None:
-                    #        try:
-                    #            #print(torque_col)
-                    #            last_torque = float(last_row[torque_col])
-                    #            print(last_torque)
-                    #        except Exception:
-                    #            pass
-                    #    if energy_col is not None:
-                    #        try:
-                    #            #print(energy_col)
-                    #            last_E = float(last_row[energy_col])
-                    #            print(last_E)
-                    #        except Exception:
-                    #            pass
                     # find latest .ovf autosave in run_dir
                     ovf_files = sorted(run_dir.glob("*.ovf"), key=lambda p: p.stat().st_mtime)
                     final_src = ovf_files[-1] if ovf_files else None
@@ -459,4 +423,4 @@ def start_image_gen():
 
 # Run when executed directly
 if __name__ == "__main__":
-    start_image_gen()
+    start_ovfs_gen()

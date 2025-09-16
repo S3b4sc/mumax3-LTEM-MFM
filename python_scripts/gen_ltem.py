@@ -6,6 +6,7 @@ from PyLorentz.sim import sim  # for types like Microscope if needed
 from PyLorentz.sim.sim import Microscope  # adjust import if required
 # Or: from PyLorentz.sim.sim import SimLTEM
 from pathlib import Path
+import re
 
 def generate_ltem_image(ovf_path:str = "./mumax_files/demo.out/final.ovf", save_path:str = './images/LTEM_images/') -> None:
     """
@@ -67,20 +68,24 @@ def generate_ltem_image(ovf_path:str = "./mumax_files/demo.out/final.ovf", save_
     plt.imshow(img, cmap='gray')
     plt.colorbar(label='Intensity (a.u.)')
     plt.title(f"Simulated LTEM (defocus = {defocus_nm} nm) /n")
-    plt.savefig(save_path + 'LTEM1.png')
+    plt.savefig(save_path + 'oommf_LTEM1.png')
 
 def gen_ltem_dataset(ovf_path:str = "./mumax_files/logs/", save_path:str = './images/LTEM_images/') -> None:
     '''
     '''
 
     # find all .ovf files
-    ovf_files = list(Path(ovf_path).glob("*.ovf"))
+    ovf_files = sorted(Path(ovf_path).glob("final_*.ovf"),
+    key=lambda f: int(re.search(r"final_(\d+)\.ovf", f.name).group(1)))
+    #print(ovf_files)
 
     # count them
     #print(f"Number of .ovf files: {len(ovf_files)}")
     #print(ovf_files)
 
     for index,ovf in enumerate(ovf_files,start=1):
+        #print(index)
+        #print(ovf)
 
         sim = SimLTEM.load_ovf(str(ovf), verbose=1)
     
@@ -134,3 +139,4 @@ def gen_ltem_dataset(ovf_path:str = "./mumax_files/logs/", save_path:str = './im
         plt.colorbar(label='Intensity (a.u.)')
         plt.title(f"defocus = {defocus_nm} nm")
         plt.savefig(save_path + image_name)
+        plt.close()

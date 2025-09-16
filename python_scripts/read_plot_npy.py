@@ -2,12 +2,15 @@ import numpy as np
 import pyvista as pv
 from pathlib import Path
 from typing import Optional
+import oommfpy as op
+import matplotlib.pyplot as plt
+import subprocess
 
 def read_plot(in_route: str,
               out_route_html: Optional[str] = "./html_plots/plot.html",
               cell_size=(1.0, 1.0, 1.0),
-              glyph_factor: float = 0.8,
-              lift_mz: float = 0.0) -> None:
+              glyph_factor: float = 0.8, z_color:bool = False,
+              lift_mz: float = 0.0, oommf_file:bool = False) -> None:
     """
     Read a mumax3-converted .npy file (shape (3, nz, ny, nx)) and plot
     3D arrows oriented with the full (mx,my,mz) vectors. Color = mz.
@@ -27,26 +30,57 @@ def read_plot(in_route: str,
     lift_mz : float
         If > 0, shift each arrow base in z by (mz * lift_mz) to make arrows non-coplanar
         when the grid is a single layer (nz==1). Units are same as cell_size (e.g. meters).
+    oommf : bool
+        If True, the input file is a binary8 oommf file with extension .omf, else, is a .ovf output file
+        from Mumax3.
     """
-    # Load numpy
-    spins = np.load(in_route)  # expected shape: (3, nz, ny, nx)
-    if spins.ndim != 4 or spins.shape[0] != 3:
-        raise ValueError("Expected spins shape (3, nz, ny, nx). Got: " + str(spins.shape))
 
-    _, nz, ny, nx = spins.shape
-    dx, dy, dz = cell_size
+    if oommf_file:
+        # ## Basic functionality
 
-    # Rearrange so we have (nx, ny, nz, 3) — x fastest
-    # input: (3, nz, ny, nx)
-    arr = np.moveaxis(spins, 0, -1)   # (nz, ny, nx, 3)
-    arr = arr.transpose(2, 1, 0, 3)   # (nx, ny, nz, 3)
+        # The most useful method in this library is the `OOMMFData` class, which can read a `omf` file in any format (binary, structured, etc.). From this class, the magnetisation and coordinates can be computed:
 
-    # Flatten vectors and build positions with same ordering (x fastest)
-    vectors = arr.reshape(-1, 3).astype(np.float32)    # (N,3)
-    ix, iy, iz = np.indices((nx, ny, nz))
-    coords = np.stack((ix, iy, iz), axis=-1).reshape(-1, 3).astype(np.float32)
-    # to physical coordinates
-    positions = coords * np.array([dx, dy, dz], dtype=np.float32)
+        data = op.MagnetisationData(in_route)
+        data.generate_field()
+        data.generate_coordinates()
+
+        # data.m -> (N, 3), con N = nx*ny*nz
+        nx, ny, nz = data.nx, data.ny, data.nz   # dimensiones de la malla
+        dx, dy, dz = data.dx, data.dy, data.dz   # tamaños de celda
+
+        # Rearrange so we have (nx, ny, nz, 3) — x fastest
+        vectors = np.stack((data.mx, data.my, data.mz), axis=-1)     # (nx, ny, nz, 3)
+        positions = np.stack((data.x,data.y,data.z), axis=1)
+
+    else:
+
+        ## Convert mumax ovf output to npy file
+        subprocess.run(['mumax3-convert', '-numpy', in_route + '.ovf'])
+        # Convert mumax ovf output to npy file
+        subprocess.run(['mumax3-convert', '-png','./mumax_files/PtCo.out/PtCo.ovf'])
+        # Load numpy
+        spins = np.load(in_route + '.npy')  # expected shape: (3, nz, ny, nx)
+        #print(spins)
+        #print(spins.shape)
+        #print(np.sum( spins == np.nan ))
+        #print(spins.shape)
+        if spins.ndim != 4 or spins.shape[0] != 3:
+            raise ValueError("Expected spins shape (3, nz, ny, nx). Got: " + str(spins.shape))
+
+        _, nz, ny, nx = spins.shape
+        dx, dy, dz = cell_size
+
+        # Rearrange so we have (nx, ny, nz, 3) — x fastest
+        # input: (3, nz, ny, nx)
+        arr = np.moveaxis(spins, 0, -1)   # (nz, ny, nx, 3)
+        arr = arr.transpose(2, 1, 0, 3)   # (nx, ny, nz, 3)
+
+        # Flatten vectors and build positions with same ordering (x fastest)
+        vectors = arr.reshape(-1, 3).astype(np.float32)    # (N,3)
+        ix, iy, iz = np.indices((nx, ny, nz))
+        coords = np.stack((ix, iy, iz), axis=-1).reshape(-1, 3).astype(np.float32)
+        # to physical coordinates
+        positions = coords * np.array([dx, dy, dz], dtype=np.float32)
 
 
     # Scalars
@@ -76,8 +110,10 @@ def read_plot(in_route: str,
 
     # Plot
     plotter = pv.Plotter()
-    #plotter.add_mesh(glyphs, scalars="mz", cmap="inferno", show_scalar_bar=True)
-    plotter.add_mesh(glyphs, scalars="angles", cmap="hsv", show_scalar_bar=True)
+    if z_color:
+        plotter.add_mesh(glyphs, scalars="mz", cmap="inferno", show_scalar_bar=True)
+    else:
+        plotter.add_mesh(glyphs, scalars="angles", cmap="hsv", show_scalar_bar=True)
     plotter.add_axes(line_width=2,
                  labels_off=False,
                  xlabel="x",
@@ -88,6 +124,7 @@ def read_plot(in_route: str,
 
     # Use an oblique/isometric camera so out-of-plane tilt is visible
     plotter.camera_position = 'iso'   # good default (not strictly top view)
+    #plotter.save_graphic('img.eps')
 
     # Try export if requested
     if out_route_html:
@@ -132,3 +169,15 @@ def read_plot(in_route: str,
     #plt.colorbar(label="|m_in-plane|")
     #plt.title("In-plane magnetization magnitude")
     #plt.savefig('try2.png')
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

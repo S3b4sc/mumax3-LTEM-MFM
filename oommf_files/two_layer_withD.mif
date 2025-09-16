@@ -1,0 +1,142 @@
+# MIF 2.1
+# Simple ultrathin film relaxation
+
+# For running
+# GUI  			oommf.tcl mmDisp
+# Code   		oommf.tcl boxsi myfile.mif
+
+# ------------------------------------------------------------
+# Geometry atlas (two stacked films)
+# ------------------------------------------------------------
+Specify Oxs_MultiAtlas:atlas {
+   atlas { Oxs_BoxAtlas {
+       xrange {0 200e-9}
+       yrange {0 200e-9}
+       zrange {0 2e-9}
+       name layer1
+   }   }
+   atlas { Oxs_BoxAtlas {
+       xrange {0 200e-9}
+       yrange {0 200e-9}
+       zrange {0 1e-9}
+       name  layer2
+   }   }
+}
+ 
+
+# ------------------------------------------------------------
+# Mesh discretization
+# ------------------------------------------------------------
+Specify Oxs_RectangularMesh:mesh {
+    cellsize {2e-9 2e-9 1e-9}
+    atlas :atlas
+}
+
+# ------------------------------------------------------------
+# Material parameters
+# ------------------------------------------------------------
+# Exchange and demag are global
+Specify Oxs_UniformExchange {A 1.3e-11}
+Specify Oxs_Demag {}
+
+
+# ------------------------------------------------------------
+# Per-layer anisotropy 
+# ------------------------------------------------------------
+
+Specify Oxs_UniaxialAnisotropy {
+  K1 { Oxs_AtlasScalarField {
+    atlas :atlas
+    values {
+        layer1 5e4
+        layer2 1e5
+    }
+  }}
+  axis { Oxs_UniformVectorField {
+    norm 1
+    vector {1 0 0}
+  } }
+}
+
+
+# ------------------------------------------------------------
+# DMI: Oxs_DMExchange6Ngbr with per-region entries
+# ------------------------------------------------------------
+# Set D for each region (and optionally interface). Units: J/m^2
+# Here: layer1 has D = 3.5e-3, layer2 has D = 1.0e-3, interface D=0
+
+#uniform DMI is used here
+Specify Oxs_DMExchange6Ngbr:DMEx [subst {
+  default_D 3.5e-3
+  atlas :atlas
+  D {
+   layer1 layer1 3.5e-3
+   layer2 layer2 4.6e-3
+  }
+}]
+
+
+# ------------------------------------------------------------
+# Saturation magnetization per layer
+# ------------------------------------------------------------
+
+Specify Oxs_AtlasScalarField:Ms {
+    atlas :atlas
+    default_value 0
+    values {
+        layer1 8e5
+        layer2 6e5
+    }
+}
+
+# ------------------------------------------------------------
+# Initial magnetization
+# ------------------------------------------------------------
+#Specify Oxs_AtlasVectorField:m0 {
+#    atlas :atlas
+#    norm 1.0
+#    default_value {1 0 0}
+#    values {
+#        layer1 {1 0 0}
+#        layer2 {0 1 0}
+#    }
+#}
+Specify Oxs_RandomVectorField:m0 {
+    min_norm 1
+    max_norm 1
+}
+
+
+# ------------------------------------------------------------
+# Evolve / driver
+# (use TimeDriver + RKF54 to relax dynamically; remove any D parameter here)
+# ------------------------------------------------------------
+Specify Oxs_RungeKuttaEvolve:rk4 {
+    method rkf54
+    alpha 0.5
+    gamma_G 2.21e5
+}
+
+
+Specify Oxs_TimeDriver {
+    evolver :rk4
+    mesh :mesh
+    Ms :Ms
+    m0 :m0
+    stopping_time 1e-9
+}
+
+
+# ------------------------------------------------------------
+# Outputs (save magnetization & data)
+# ------------------------------------------------------------
+
+# === Output destinations ===
+Destination archive mmArchive
+
+# Save scalar data (energy, etc.) every step
+Schedule DataTable archive Step 1
+
+# Save full magnetization vector field at the end of each stage
+Schedule Oxs_TimeDriver::Magnetization archive Stage 1
+

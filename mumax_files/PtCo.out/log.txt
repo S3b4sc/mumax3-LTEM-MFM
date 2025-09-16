@@ -1,0 +1,38 @@
+//mumax 3.11.1 [linux_amd64 go1.22.4(gc) CUDA-12.9]
+//commit hash: ee077035
+//CPU info: 12th Gen Intel(R) Core(TM) i7-12650H, Cores: 10, MHz: 400.000
+//GPU info: NVIDIA GeForce RTX 4050 Laptop GPU(5770MB), CUDA Driver 12.9, cc=8.9, using cc=89 PTX
+//OS  info: Ubuntu 22.04.5 LTS, Hostname: santiago-Thin
+//Timestamp: 2025-09-12 12:41:57
+//(c) Arne Vansteenkiste, Dynamat LAB, Ghent University, Belgium
+//This is free software without any warranty. See license.txt
+//********************************************************************//
+//  If you use mumax in any work or publication,                      //
+//  we kindly ask you to cite the references in references.bib        //
+//********************************************************************//
+//output directory: ./mumax_files/PtCo.out/
+SetGridsize(2, 100, 100)
+SetCellsize(2e-9, 2e-9, 1e-9)
+defregion(0, xrange(-inf, 0))
+defregion(1, xrange(0, inf))
+Msat.setRegion(0, 1.5e-6)
+Msat.setRegion(1, 1.1e6)
+Aex.setRegion(0, 0)
+Aex.setRegion(1, 15e-12)
+Ku1.setRegion(0, 0)
+Ku1.setRegion(1, 6e5)
+anisU = vector(0, 0, 1)
+Dind.SetRegion(0, 0)
+Dind.SetRegion(1, 1.5e-6)
+alpha = 0.8
+m.setRegion(0, RandomMag())
+m.setRegion(1, RandomMag())
+Minimize()
+SaveAs(m, "PtCo.ovf")
+//********************************************************************//
+//Please cite the following references, relevant for your simulation. //
+//See bibtex file in output folder for justification.                 //
+//********************************************************************//
+//   * Mulkers et al., Phys. Rev. B 95, 144401 (2017).
+//   * Vansteenkiste et al., AIP Adv. 4, 107133 (2014).
+//   * Exl et al., J. Appl. Phys. 115, 17D118 (2014).

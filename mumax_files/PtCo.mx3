@@ -1,0 +1,48 @@
+// Pt/Co multilayer 
+
+SetGridsize(2, 100, 100)          // larger grid to allow textures to form
+SetCellsize(2e-9, 2e-9, 1e-9)     // small cell size for good resolution (nm)
+
+
+// Define regions
+defregion(0, xrange(-inf,0))        // Pt layer (1 nm)
+defregion(1, xrange(0,inf))    // Co layer (2 nm)
+
+
+//SetPBC(1,1,0)                     // Periodic Boundary Conditions
+
+// Saturation magnetization
+Msat.setRegion(0, 1.5e-6)               // Pt nonmagnetic
+Msat.setRegion(1, 1.1e6)           // Co Msat ~1.1 MA/m
+
+// Exchange stiffness
+Aex.setRegion(0, 0)                // Pt no exchange
+Aex.setRegion(1, 15e-12)           // Co typical
+
+// Uniaxial anisotropy
+Ku1.setRegion(0, 0)                // Pt none
+Ku1.setRegion(1, 6e5)              // Co out-of-plane
+anisU = vector(0, 0, 1)
+
+// DMI (interfacial, Co only)
+Dind.SetRegion(0, 0)
+Dind.SetRegion(1, 1.5e-6)
+
+// Damping
+alpha = 0.8
+
+// External magnetic field
+//B_ext = vector(0, 0, 0.5)         // Tesla, stabilizes skyrmions
+
+// Temperature
+//Temp = 200       // Kelvin
+
+// Initial magnetization: random to allow textures
+m.setRegion(0, RandomMag())
+m.setRegion(1, RandomMag())
+
+// Relax the system
+Minimize()
+
+// Save final state
+SaveAs(m, "PtCo.ovf")
