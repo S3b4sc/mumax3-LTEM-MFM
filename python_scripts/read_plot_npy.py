@@ -57,7 +57,7 @@ def read_plot(in_route: str,
         ## Convert mumax ovf output to npy file
         subprocess.run(['mumax3-convert', '-numpy', in_route + '.ovf'])
         # Convert mumax ovf output to npy file
-        subprocess.run(['mumax3-convert', '-png','./mumax_files/PtCo.out/PtCo.ovf'])
+        #subprocess.run(['mumax3-convert', '-png','./mumax_files/PtCo.out/PtCo.ovf'])
         # Load numpy
         spins = np.load(in_route + '.npy')  # expected shape: (3, nz, ny, nx)
         #print(spins)

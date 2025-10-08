@@ -17,7 +17,7 @@ from typing import Dict, Any, Optional
 import re
 
 # -------------------------
-# User parameters (same as your original)
+# User parameters 
 # -------------------------
 param_grid = {
     "Dind": [2.5e-3, 3.0e-3,4.0e-3],          # DMI strength (J/m^2)
@@ -25,7 +25,7 @@ param_grid = {
     "Aex":  [7e-12,10e-12,15e-12],            # exchange stiffness (J/m)
     "alpha":  [0.3,0.5,0.8],                  # damping
     "B_ext": [[0,0,0], [0,0,0.1],[0,0,0.3],[0,0,0.5],[0,0,0.7],[0,0,0.9]],       # External magnetic field, Teslas 
-    "Msat": [580e3],                          # saturation magnetization (A/m)
+    "Msat": [1.446e6],                          # saturation magnetization (A/m)
     "Temp": [200]
 }
 
@@ -36,8 +36,8 @@ torque_tol = 1e-5          # convergence tolerance on MaxTorque (dimensionless)
 stable_checks = 5          # number of consecutive polls below tol required
 autosave_interval = 1e-9   # (s) autosave magnetization frequency inside the mx3 script
 tableautosave_interval = 1e-10  # (s) how often MuMax writes table.txt
-gridsize = (100, 100, 1)
-cellsize = (2e-9, 2e-9, 1e-9)
+gridsize = (512, 512, 1)
+cellsize = (4e-9, 4e-9, 0.9e-9)
 
 output_base = Path("./mumax_files/logs")
 log_csv = Path("./mumax_files/logs/simulation_log.csv")
@@ -57,11 +57,28 @@ def log(msg: str, level: str = "INFO", run_id: Optional[int] = None) -> None:
     print(f"{prefix}: {msg}")
 
 # -------------------------
+#   Anisotropy by blocks
+# -------------------------
+Ku_mean = 8e5         # J/m³
+sigma = 0.15          # relative disorder strength
+blocksize = 8
+
+# Gaussian distribution around Ku_mean
+Ku_map = np.random.normal(loc=Ku_mean, scale=sigma*Ku_mean, size=(gridsize[0]//blocksize, gridsize[1]//blocksize))
+
+# Expand each block back to Nx * Ny
+Ku_map_expanded = np.kron(Ku_map, np.ones((blocksize,blocksize)))
+
+# Save to text file for Mumax
+np.savetxt("./mumax_files/Ku_map.txt", Ku_map_expanded, fmt="%.6e")
+
+
+# -------------------------
 #          Helpers 
 # -------------------------
 def write_mx3_file(path: Path, params: Dict[str, Any], max_time: float,
                    autosave_interval: float, tableautosave_interval: float,
-                   gridsize=(100,100,1), cellsize=(2e-9,2e-9,1e-9)) -> None:
+                   gridsize=(512,512,1), cellsize=(4e-9,4e-9,0.9e-9)) -> None:
     """
     Write a MuMax3 script with TableAdd and autosave so we can monitor progress.
     (Function name and signature preserved.)
@@ -88,8 +105,8 @@ autosave(m, {autosave_interval})
 
 // random init & run
 m = RandomMag()
-{ "relax()" if params.get("relax_mode", False) else f"run({max_time})" }
-//{ "Minimize()" if params.get("relax_mode", False) else f"run({max_time})" }
+{ "relax()" if params.get("relax_mode", False) else f"run({max_time})" }    // Solve LLG equiation
+//{ "Minimize()" if params.get("relax_mode", False) else f"run({max_time})" }    // Find minimun energy state using gradient (Faster but ignores dynamics)
 SaveAs(m, "final.ovf")
 """
     path.write_text(mx3)
@@ -146,7 +163,7 @@ def start_ovfs_gen():
     """
     results = []
     run_id = 0
-    n_trials = 3
+    n_trials = 10     # Amount of simulations with the same parameters
 
     log("Starting sweep", level="INFO")
     # iterate parameter grid exactly as your original script did
@@ -155,6 +172,7 @@ def start_ovfs_gen():
             for B in param_grid["B_ext"]:
                 for trial in range(n_trials):
                     run_id += 1
+
                     params = {
                         "Dind": D,
                         "Ku1": Ku1,

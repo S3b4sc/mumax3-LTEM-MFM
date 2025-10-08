@@ -1,6 +1,6 @@
 // Pt/Co multilayer 
 
-SetGridsize(2, 100, 100)          // larger grid to allow textures to form
+SetGridsize(1, 100, 100)          // larger grid to allow textures to form
 SetCellsize(2e-9, 2e-9, 1e-9)     // small cell size for good resolution (nm)
 
 

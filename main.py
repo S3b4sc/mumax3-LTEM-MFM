@@ -1,13 +1,13 @@
 from python_scripts import read_plot, input_menu, generate_ltem_image, start_ovfs_gen, gen_ltem_dataset
 import subprocess
-
+import time
 
 
 if __name__ == '__main__':
     usrChoice = input_menu()
 
     if usrChoice == 1:
-        oommf_file = True
+        oommf_file = False
 
         if oommf_file:
             #oommf_in_archive = './oommf_files/two_layer_withD.mif'
@@ -17,17 +17,22 @@ if __name__ == '__main__':
         else: 
 
             # Run Mumax simulation
-            mumax_in_archive = './mumax_files/PtCo.mx3'
+            mumax_in_archive = './mumax_files/demo.mx3'
             mumax_out_dir = './mumax_files'
+
+            start = time.time()
             subprocess.run(['mumax3', mumax_in_archive])    
+            end = time.time()
+            print(f"Simulation time: {end - start} seconds")
 
             # Read and Plot the simulation results
-            read_plot(in_route='./mumax_files/demo.out/final.npy', z_color=False)
+            read_plot(in_route='./mumax_files/demo.out/final', out_route_html="./html_plots/demo300.html", z_color=False)
             #mumax in_route = './mumax_files/PtCo.out/PtCo'
-            read_plot(in_route='./mumax_files/PtCo.out/PtCo', oommf_file=oommf_file)
+            #read_plot(in_route='./mumax_files/PtCo.out/PtCo', out_route_html="./html_plots/demo512.html")
     
     if usrChoice == 2:
-        generate_ltem_image(ovf_path='oommf_files/two_layer_withD-Oxs_TimeDriver-Magnetization-00-0005834.omf')
+        #generate_ltem_image(ovf_path='oommf_files/two_layer_withD-Oxs_TimeDriver-Magnetization-00-0005834.omf')
+        generate_ltem_image(ovf_path='./mumax_files/demo.out/final.ovf')
 
     elif usrChoice == 3:
         # Run Mumax simulation
@@ -46,6 +51,6 @@ if __name__ == '__main__':
     
     elif usrChoice == 6:
         # Convert mumax ovf output to npy file
-        subprocess.run(['mumax3-convert', '-numpy','./mumax_files/logs/final_154.ovf'])
+        subprocess.run(['mumax3-convert', '-numpy','./mumax_files/logs/run_00155/final.ovf'])
         # Read and Plot the simulation results
-        read_plot(in_route='./mumax_files/logs/final_154.npy', out_route_html='./html_plots/plot_154.html', z_color=False)
+        read_plot(in_route='./mumax_files/logs/run_00155/final', out_route_html='./html_plots/plot_00number.html', z_color=True)

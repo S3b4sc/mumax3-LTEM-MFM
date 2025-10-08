@@ -1,11 +1,11 @@
 from pathlib import Path
 import matplotlib.pyplot as plt
+import numpy as np
 from PyLorentz.sim.sim import SimLTEM
 from PyLorentz.sim import comp_phase
 from PyLorentz.sim import sim  # for types like Microscope if needed
 from PyLorentz.sim.sim import Microscope  # adjust import if required
 # Or: from PyLorentz.sim.sim import SimLTEM
-from pathlib import Path
 import re
 
 def generate_ltem_image(ovf_path:str = "./mumax_files/demo.out/final.ovf", save_path:str = './images/LTEM_images/') -> None:
@@ -63,12 +63,15 @@ def generate_ltem_image(ovf_path:str = "./mumax_files/demo.out/final.ovf", save_
     # Assuming dataset contains defocused images, possibly as numpy arrays
     # This depends on the dataset structure; adjust name accordingly
     img = dataset.images[0] if hasattr(dataset, 'images') else dataset[0]
+    #print(img.shape)
+    #print(img)
 
     plt.figure(figsize=(6, 5))
     plt.imshow(img, cmap='gray')
     plt.colorbar(label='Intensity (a.u.)')
-    plt.title(f"Simulated LTEM (defocus = {defocus_nm} nm) /n")
-    plt.savefig(save_path + 'oommf_LTEM1.png')
+    plt.title(rf"$Simulated\ LTEM$" + "\n" + rf"$(\ defocus = {defocus_nm}\ nm)$",loc='left')
+    np.save("./images/original_npy_images/" + '512_trial11.npy', img)
+    plt.savefig(save_path + '512_trial11.png')      # To save the image as a cmap
 
 def gen_ltem_dataset(ovf_path:str = "./mumax_files/logs/", save_path:str = './images/LTEM_images/') -> None:
     '''
@@ -128,15 +131,17 @@ def gen_ltem_dataset(ovf_path:str = "./mumax_files/logs/", save_path:str = './im
         )
     
         # ---- 3. Extract image array and display ----
-        # Assuming dataset contains defocused images, possibly as numpy arrays
-        # This depends on the dataset structure; adjust name accordingly
+        # Assuming dataset contains defocused images
+        # This depends on the dataset structure
         img = dataset.images[0] if hasattr(dataset, 'images') else dataset[0]
+        image_name = f'LTEM_{index}'
 
-        image_name = f'LTEM_{index}.png'
+        np.save( "./images/original_npy_images/" + image_name + '.npy', img)   # Sabe the origin al npy image
+
     
         plt.figure(figsize=(6, 5))
         plt.imshow(img, cmap='gray')
         plt.colorbar(label='Intensity (a.u.)')
-        plt.title(f"defocus = {defocus_nm} nm")
-        plt.savefig(save_path + image_name)
+        plt.title(rf"$Simulated\ LTEM$" + "\n" + rf"$(\ defocus = {defocus_nm}\ nm)$",loc='left')
+        plt.savefig(save_path + image_name + '.png')
         plt.close()
