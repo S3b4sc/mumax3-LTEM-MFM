@@ -5,6 +5,11 @@ logs
 # oommf output files
 *.omf 
 *.odt
+# CNN dummy models
+*.pth
+# Trial images MNITS
+*.gz
+*ubyte
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
