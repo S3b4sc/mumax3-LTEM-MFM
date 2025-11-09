@@ -1,0 +1,4 @@
+// WARNING: cell size was set to a high aspect ratio.
+//          Calculation of demag kernel may take longer than usual.
+//Did not use cached kernel: open /tmp/mumax3kernel_[512 512 1]_[1 1 0]_[4e-09 4e-09 9e-10]_6_0 0.ovf: no such file or directory
+//Cached kernel: /tmp/mumax3kernel_[512 512 1]_[1 1 0]_[4e-09 4e-09 9e-10]_6_

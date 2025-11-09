@@ -1,4 +1,4 @@
-from python_scripts import read_plot, input_menu, generate_ltem_image, start_ovfs_gen, gen_ltem_dataset
+from python_scripts import read_plot, input_menu, generate_ltem_image, start_ovfs_gen, gen_ltem_dataset, start_gen 
 import subprocess
 import time
 
@@ -26,13 +26,14 @@ if __name__ == '__main__':
             print(f"Simulation time: {end - start} seconds")
 
             # Read and Plot the simulation results
-            read_plot(in_route='./mumax_files/demo.out/final', out_route_html="./html_plots/demo300.html", z_color=False)
+            read_plot(in_route='./mumax_files/demo.out/final_run9', out_route_html="./html_plots/demo512_run1.html", binary_mz=True)
             #mumax in_route = './mumax_files/PtCo.out/PtCo'
             #read_plot(in_route='./mumax_files/PtCo.out/PtCo', out_route_html="./html_plots/demo512.html")
     
     if usrChoice == 2:
         #generate_ltem_image(ovf_path='oommf_files/two_layer_withD-Oxs_TimeDriver-Magnetization-00-0005834.omf')
-        generate_ltem_image(ovf_path='./mumax_files/demo.out/final.ovf')
+        #generate_ltem_image(ovf_path='./mumax_files/demo.out/final_run5.ovf')
+        generate_ltem_image(ovf_path='./mumax_dataset_ku_by_block_disorder/run_00001/final_1.ovf', save_path='./images/LTEM_images_ku_by_blocks/')
 
     elif usrChoice == 3:
         # Run Mumax simulation
@@ -47,10 +48,17 @@ if __name__ == '__main__':
         start_ovfs_gen()
 
     elif usrChoice == 5:
-        gen_ltem_dataset()
+        gen_ltem_dataset(ovf_path = "./mumax_dataset_ku_by_block_disorder/", save_path = './images/LTEM_images_ku_by_blocks/')
     
     elif usrChoice == 6:
         # Convert mumax ovf output to npy file
-        subprocess.run(['mumax3-convert', '-numpy','./mumax_files/logs/run_00155/final.ovf'])
+        #subprocess.run(['mumax3-convert', '-numpy','./mumax_dataset_ku_by_block_disorder/run_00001/final_1.ovf'])
+        #subprocess.run(['mumax3-convert', '-png','./mumax_dataset_ku_by_block_disorder/run_00001/final_1.ovf'])
         # Read and Plot the simulation results
-        read_plot(in_route='./mumax_files/logs/run_00155/final', out_route_html='./html_plots/plot_00number.html', z_color=True)
+        read_plot(in_route='./mumax_files/demo.out/final_run8', out_route_html='./html_plots/plot_8number.html', binary_mz=True)
+        #read_plot(in_route='./mumax_dataset_ku_by_block_disorder/run_00001/final_1', out_route_html='./html_plots/plot_512corrected.html', binary_mz=True)
+
+    elif usrChoice == 7:
+        duration = float(input("Enter the desired runtime in minutes (e.g., 120 for 2 hours): "))
+        start_gen(max_runtime_minutes=duration)
+        

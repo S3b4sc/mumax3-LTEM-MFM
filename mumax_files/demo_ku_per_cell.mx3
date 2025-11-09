@@ -1,0 +1,23 @@
+// test_ku_load.mx3
+SetGridsize(64,64,1)
+SetCellsize(4e-9,4e-9,1e-9)
+
+Msat  = 1.2e6
+Aex   = 1.0e-11
+alpha = 1.0
+Dind  = 0.0
+anisU = vector(0,0,1)
+B_ext = vector(0,0,0)
+Temp  = 0
+
+// --- load per-cell Ku field ---
+Ku1 = Ku1.LoadFile("Ku_map.ovf")
+
+
+// quick check: report stats to table
+TableAdd(Ku1)
+tablesave()
+
+m = RandomMag()
+Minimize()
+SaveAs(m, "final_ku_per_cell.ovf")

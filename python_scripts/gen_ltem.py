@@ -27,7 +27,7 @@ def generate_ltem_image(ovf_path:str = "./mumax_files/demo.out/final.ovf", save_
         "sample_xip0": None,
         "mem_V0": None,
         "mem_xip0": None,
-        "mem_thickness": 50.0  # nm
+        "mem_thickness": 10.0  # nm
     })
 
 
@@ -46,7 +46,7 @@ def generate_ltem_image(ovf_path:str = "./mumax_files/demo.out/final.ovf", save_
     # For one defocus value (e.g., 1 µm = 1e3 nm)
     
 
-    # Define a microscope; placeholder values—update as needed
+    # Define a microscope; 
     scope = Microscope()  # typical parameters to define: aperture, Cs, etc.
 
     defocus_nm = 1000.0  # 1000 nm = 1 µm
@@ -60,26 +60,31 @@ def generate_ltem_image(ovf_path:str = "./mumax_files/demo.out/final.ovf", save_
     )
 
     # ---- 3. Extract image array and display ----
-    # Assuming dataset contains defocused images, possibly as numpy arrays
-    # This depends on the dataset structure; adjust name accordingly
+    # Assuming dataset contains defocused images as numpy arrays
+    # This depends on the dataset structure
     img = dataset.images[0] if hasattr(dataset, 'images') else dataset[0]
+    # Nomalize image to [0, 1]
+    img = (img - np.min(img)) / (np.max(img) - np.min(img))     #-------------------------------------------- Optional normalization to [0, 1] to enhance contrast
     #print(img.shape)
     #print(img)
 
     plt.figure(figsize=(6, 5))
-    plt.imshow(img, cmap='gray')
+    plt.imshow(np.exp(img), cmap='gray')
+    #plt.imshow(img, cmap='gray')
     plt.colorbar(label='Intensity (a.u.)')
     plt.title(rf"$Simulated\ LTEM$" + "\n" + rf"$(\ defocus = {defocus_nm}\ nm)$",loc='left')
     np.save("./images/original_npy_images/" + '512_trial11.npy', img)
-    plt.savefig(save_path + '512_trial11.png')      # To save the image as a cmap
+    plt.savefig(save_path + '512_trial.png')      # To save the image as a cmap
 
 def gen_ltem_dataset(ovf_path:str = "./mumax_files/logs/", save_path:str = './images/LTEM_images/') -> None:
     '''
     '''
 
     # find all .ovf files
-    ovf_files = sorted(Path(ovf_path).glob("final_*.ovf"),
+    ovf_files = sorted(Path(ovf_path).glob("**/final_*.ovf"),
     key=lambda f: int(re.search(r"final_(\d+)\.ovf", f.name).group(1)))
+
+    print(ovf_files)
     #print(ovf_files)
 
     # count them
@@ -131,8 +136,7 @@ def gen_ltem_dataset(ovf_path:str = "./mumax_files/logs/", save_path:str = './im
         )
     
         # ---- 3. Extract image array and display ----
-        # Assuming dataset contains defocused images
-        # This depends on the dataset structure
+
         img = dataset.images[0] if hasattr(dataset, 'images') else dataset[0]
         image_name = f'LTEM_{index}'
 

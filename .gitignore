@@ -1,15 +1,25 @@
 # Binary files (Images)
 images 
+
 # Text output files/ ovf files
 logs
+*table.txt
+*run
+*.out
+html_plots
+
 # oommf output files
 *.omf 
 *.odt
+*.ovf
+*.npy
 # CNN dummy models
 *.pth
 # Trial images MNITS
 *.gz
 *ubyte
+# Pytorch trained models
+*pth                                                                            
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

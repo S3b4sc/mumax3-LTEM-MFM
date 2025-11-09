@@ -9,7 +9,7 @@ import subprocess
 def read_plot(in_route: str,
               out_route_html: Optional[str] = "./html_plots/plot.html",
               cell_size=(1.0, 1.0, 1.0),
-              glyph_factor: float = 0.8, z_color:bool = False,
+              glyph_factor: float = 0.8, z_color:bool = False, binary_mz: bool = False, 
               lift_mz: float = 0.0, oommf_file:bool = False) -> None:
     """
     Read a mumax3-converted .npy file (shape (3, nz, ny, nx)) and plot
@@ -69,11 +69,24 @@ def read_plot(in_route: str,
 
         _, nz, ny, nx = spins.shape
         dx, dy, dz = cell_size
+        print(f"Grid size: nx={nx}, ny={ny}, nz={nz}, cell size: dx={dx}, dy={dy}, dz={dz}")
+        
 
         # Rearrange so we have (nx, ny, nz, 3) — x fastest
         # input: (3, nz, ny, nx)
         arr = np.moveaxis(spins, 0, -1)   # (nz, ny, nx, 3)
         arr = arr.transpose(2, 1, 0, 3)   # (nx, ny, nz, 3)
+        #arr = spins.copy()
+        #print(arr[:10,:10,0,2])
+
+        #mz = spins[2, 0, :, :]           # take mz at z=0
+        #mz2 = arr[:, :, 0, 2]              # should be the same as above
+#
+        #plt.imshow(mz, cmap='gray', origin='lower')
+        #plt.title("Raw mz slice from OVF (no reshaping)")
+        #plt.xlabel("x")
+        #plt.ylabel("y")
+        #plt.show()
 
         # Flatten vectors and build positions with same ordering (x fastest)
         vectors = arr.reshape(-1, 3).astype(np.float32)    # (N,3)
@@ -88,21 +101,37 @@ def read_plot(in_route: str,
     mz_scalar = vectors[:, 2].astype(np.float32)
     #print(mz_scalar)
 
-    # NEW: compute in-plane azimuthal angle
-    angles = np.arctan2(vectors[:,1], vectors[:,0])   # atan2(my, mx)
-    angles = (angles + 2*np.pi) % (2*np.pi)           # wrap to [0, 2π]
+    # Optional binary color (black/white based on mz sign)
+    if binary_mz:
+        bw_cmap = plt.cm.colors.ListedColormap(["black", "white"])
+        binary_colors = np.where(mz_scalar >= 0, 1, 0).astype(np.float32)  # 1 = white, 0 = black
+    
 
     # Build PyVista
     mesh = pv.PolyData(positions)
     mesh["spins"] = vectors        # full vector for orientation
     mesh["magnitude"] = magnitudes # scalar for scaling
     mesh["mz"] = mz_scalar         # scalar for coloring
-    mesh["angles"] = angles     # <-- for coloring
+
+    if binary_mz:
+        mesh["mz_binary"] = binary_colors
+    else:
+        # Compute in-plane azimuthal angle
+        angles = np.arctan2(vectors[:,1], vectors[:,0])   # atan2(my, mx)
+        angles = (angles + 2*np.pi) % (2*np.pi)           # wrap to [0, 2π]
+        mesh["angles"] = angles
+    
 
     # Activate arrays
     mesh.set_active_vectors("spins")
-    #mesh.set_active_scalars("mz")
-    mesh.set_active_scalars("angles")
+
+    # Choose which scalar to visualize
+    if binary_mz:
+        mesh.set_active_scalars("mz_binary")
+    elif z_color:
+        mesh.set_active_scalars("mz")
+    else:
+        mesh.set_active_scalars("angles")
 
     # Create glyphs
     arrow = pv.Arrow(tip_length=0.7, tip_radius=0.6, shaft_radius=0.35)
@@ -110,10 +139,15 @@ def read_plot(in_route: str,
 
     # Plot
     plotter = pv.Plotter()
-    if z_color:
-        plotter.add_mesh(glyphs, scalars="mz", cmap="inferno", show_scalar_bar=True)
+    
+    if binary_mz:
+        # Black-white colormap (two colors only)
+        plotter.add_mesh(glyphs, scalars="mz_binary", cmap=bw_cmap, show_scalar_bar=True, lighting=False)
+    elif z_color:
+        plotter.add_mesh(glyphs, scalars="mz", cmap="inferno", show_scalar_bar=True, lighting=False)
     else:
-        plotter.add_mesh(glyphs, scalars="angles", cmap="hsv", show_scalar_bar=True)
+        plotter.add_mesh(glyphs, scalars="angles", cmap="hsv", show_scalar_bar=True, lighting=False)
+                                                                                        
     plotter.add_axes(line_width=2,
                  labels_off=False,
                  xlabel="x",
@@ -138,10 +172,7 @@ def read_plot(in_route: str,
     # Show interactive window
     plotter.show()
     plotter.close()
-
-
-
-    ## Load numpy file converted from OVF
+    # Load numpy file converted from OVF
     #spins = np.load('./mumax_files/demo.out/final.npy')  # shape (3, nz, ny, nx)
     #print("Shape:", spins.shape)
 #

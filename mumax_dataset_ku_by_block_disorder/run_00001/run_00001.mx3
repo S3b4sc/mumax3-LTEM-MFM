@@ -1,0 +1,48 @@
+// Auto-generated .mx3 (region-based Ku disorder)
+gridX := 512
+gridY := 512
+cellX := 4e-09
+cellY := 4e-09
+SetGridsize(gridX, gridY, 1)
+SetCellsize(4e-09, 4e-09, 9e-10)
+SetPBC(1,1,0)
+
+Msat  = 1080000.0
+Aex   = 9e-12
+alpha = 0.8
+Dind  = 0.00033
+
+// --- Anisotropy with random block dispersion ---
+meanKu := 210000.0
+sigma  := 0.025
+blocksX := 15
+blocksY := 15
+baseBx := gridX / blocksX
+baseBy := gridY / blocksY
+blockWidth  := gridX * cellX / blocksX
+blockHeight := gridY * cellY / blocksY
+regionID := 1
+for bx := 0; bx < blocksX; bx++ {
+    for by := 0; by < blocksY; by++ {
+        Ku_local := meanKu * (1 + sigma * randnorm())
+        defregion(regionID,
+                  rect(blockWidth, blockHeight).Transl(
+                      (bx)*blockWidth - (blockWidth*(blocksX))/2 + blockWidth/2,
+                      (by)*blockHeight - (blockHeight*(blocksY))/2 + blockHeight/2,
+                      0))
+        Ku1.SetRegion(regionID, Ku_local)
+        regionID++
+    }
+}
+
+anisU = vector(0,0,1)
+B_ext = vector(0,0,0)
+Temp  = 0.0
+
+// --- Initial state & equilibrium solve ---
+m = RandomMag()
+Minimize()
+
+// --- Save outputs ---
+SaveAs(m, "final_1")
+tablesave()

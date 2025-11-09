@@ -242,7 +242,7 @@ def start_sensitivity_scan():
                            tableautosave_interval=tableautosave_interval,
                            max_time=max_time)
 
-            # (optionally) copy a small README or param json to run dir
+            # copy a small README or param json to run dir
             meta = {
                 "Dind": Dind, "Ku1": Ku1, "Aex": Aex, "alpha": alpha, "Temp": Temp, "sigma": sigma_rel,
                 "gridsize": gridsize, "cellsize": cellsize, "blocksize": blocksize
