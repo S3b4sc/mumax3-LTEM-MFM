@@ -1,24 +1,66 @@
-import numpy as np, pathlib
+import numpy as np
 
-# --- parameters ---
-nx, ny = 64, 64            # grid size (small test)
-dx, dy, dz = 4e-9, 4e-9, 1e-9
+# ============================
+# User parameters
+# ============================
+gridX = 512
+gridY = 512
+gridZ = 1
 
-# Simple gradient: Ku increases along x
-x = np.linspace(2.0e5, 3.0e5, nx)
-Ku = np.tile(x, (ny, 1))
+meanKu = 1.40e6      # J/m^3
+sigma  = 0.15         # 15% dispersion
 
-# --- write OVF2 scalar file ---
-out = pathlib.Path("Ku_map.ovf")
-header = (
-    "# OOMMF: rectangular mesh v2.0\n"
-    "# Title: Ku test map\n"
-    "# Desc: simple gradient for MuMax3 load() test\n"
-    f"# xnodes: {nx}\n# ynodes: {ny}\n# znodes: 1\n"
-    f"# xstepsize: {dx}\n# ystepsize: {dy}\n# zstepsize: {dz}\n"
-    "Begin: Data Text\n"
+# Choose block grid size (e.g., 64x64 blocks)
+blocksX = 64
+blocksY = 64
+
+# ============================
+# Generate blocky Ku map
+# ============================
+
+# 1. Random values per block
+block_values = np.random.normal(
+    loc=meanKu,
+    scale=sigma * meanKu,
+    size=(blocksX, blocksY)
 )
-data = "\n".join(" ".join(f"{v:.6e}" for v in row) for row in Ku)
-footer = "\nEnd: Data Text\n"
-out.write_text(header + data + footer)
-print("Ku_map.ovf written.")
+
+# 2. Upscale into full 512×512 map
+Ku_map = np.kron(
+    block_values,
+    np.ones((gridX // blocksX, gridY // blocksY))
+)
+
+Ku_map = Ku_map[:gridX, :gridY]  # Ensure exact size
+
+# Flatten into vector (OVF stores column-major)
+data = Ku_map.reshape(-1)
+
+# ============================
+# Write OVF2 ASCII file
+# ============================
+
+with open("Ku_map.ovf", "w") as f:
+    f.write("# OOMMF OVF 2.0\n")
+    f.write("# Segment count: 1\n")
+    f.write("# Begin: Segment\n")
+    f.write("# Begin: Header\n")
+    f.write("Title: Ku map\n")
+    f.write("meshunit: m\n")
+    f.write(f"xnodes: {gridX}\n")
+    f.write(f"ynodes: {gridY}\n")
+    f.write(f"znodes: {gridZ}\n")
+    f.write("valuedim: 1\n")
+    f.write("valueunits: J/m^3\n")
+    f.write("valuelabels: Ku\n")
+    f.write("# End: Header\n")
+    f.write("# Begin: Data Text\n")
+
+    # Write each Ku value on a new line
+    for v in data:
+        f.write(f"{v:.6e}\n")
+
+    f.write("# End: Data Text\n")
+    f.write("# End: Segment\n")
+
+print("Saved Ku_map.ovf successfully.")

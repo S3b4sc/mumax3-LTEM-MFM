@@ -29,21 +29,22 @@ TRAINING_CSV = OUTPUT_BASE / "training_index.csv"
 
 # ---------------------- simulation constants ----------------------
 gridsize = (512, 512, 1)
-cellsize = (4e-9, 4e-9, 1e-9)
-n_seeds = 3
-rng = np.random.default_rng(42)
+cellsize = (4e-9, 4e-9, 0.9e-9)
+n_seeds = 1
+#rng = np.random.default_rng(42)
+# --- Sampling Ranges ---
+# The CNN will learn to predict values anywhere inside these ranges
+# --- Sampling Ranges (Continuous Uniform) ---
+range_D     = (0.0e-3, 1.5e-3)
+range_sigma = (0.00, 0.15)
+Temps = [0.0]
 
-# Parameter sweep ranges (replication study)
-D_values = np.linspace(0.33e-3, 2.64e-3, 14)          # J/m^2
-sigma_vals = np.linspace(0.00, 0.20, 9)          # dimensionless Ku dispersion
-Temps = [0.0, 200.0,250.0, 300.0]                            # K
-
-# Material parameter variability (± around mean)
-Aex_values   = np.linspace(0.9e-11, 1.1e-11, 3)     # ±10%
-Ku_mean_vals = np.linspace(2.1e5, 2.9e5, 3)         # ±15%
-Msat_values  = np.linspace(1.08e6, 1.32e6, 3)       # ±10%
-alpha_values = np.linspace(0.8, 1.2, 3)             # ±20%
-blocksize = 8                                       # used for visualizing Ku grain scale
+# --- Base Material Parameters (Will have Jitter added) ---
+BASE_Aex   = 3.1e-11
+BASE_Ku    = 1.4e6
+BASE_Msat  = 1.5e6
+BASE_alpha = 1.0
+blocksize = 15                                       # used for visualizing Ku grain scale
 
 # ---------------------- helper functions ----------------------
 
@@ -51,14 +52,14 @@ mu0 = 4 * np.pi * 1e-7  # T m/A
 
 import math
 
-μ0 = 4 * math.pi * 1e-7  # vacuum permeability
+mu0 = 4 * math.pi * 1e-7  # vacuum permeability
 
 def compute_micromagnetic_params(A, Ku, Ms, D):
     """Compute micromagnetic characteristic parameters."""
-    Q = 2 * Ku / (μ0 * Ms**2)
-    K_eff = Ku - 0.5 * μ0 * Ms**2
+    Q = 2 * Ku / (mu0 * Ms**2)
+    K_eff = Ku - 0.5 * mu0 * Ms**2
     K_eff_pos = max(K_eff, 1e3)  # avoid sqrt(0)
-    lex = math.sqrt(2 * A / (μ0 * Ms**2))
+    lex = math.sqrt(2 * A / (mu0 * Ms**2))
     delta_dw = math.pi * math.sqrt(A / K_eff_pos)
     D_c = (4 / math.pi) * math.sqrt(A * K_eff_pos)
     D_ratio = D / D_c
@@ -68,19 +69,17 @@ def print_run_diagnostics(A, Ku, Ms, D, cellX):
     Q, K_eff, lex, delta_dw, D_c, D_ratio = compute_micromagnetic_params(A, Ku, Ms, D)
     warn = []
     if cellX > lex:
-        warn.append("⚠️ cell > ℓ_ex (undersampled exchange)")
+        warn.append("cell > ℓ_ex (undersampled exchange)")
     if delta_dw / cellX < 6:
-        warn.append("⚠️ δ < 6 cells (DW under-resolved)")
+        warn.append("δ < 6 cells (DW under-resolved)")
     if abs(Q - 1) > 0.5:
-        warn.append("⚠️ Q far from 1 (likely uniform or tilted state)")
+        warn.append("Q far from 1 (likely uniform or tilted state)")
 
     print(f"   → Q={Q:.2f}, Keff={K_eff:.2e}, ℓex={lex*1e9:.2f} nm, "
           f"δ={delta_dw*1e9:.2f} nm, D/Dc={D_ratio:.2f}")
     if warn:
         for w in warn:
             print("     " + w)
-
-
 
 
 def is_valid_combo(Ku, Msat, Aex, Dind, sigma):
@@ -101,7 +100,7 @@ def write_mx3_with_regions(path, gridX=512, gridY=512,
                            blocksX=15, blocksY=15,
                            Temp=0.0,idx=0):
     """Write a .mx3 file implementing blockwise Ku disorder (≤256 regions)."""
-    use_relax = Temp > 0.0
+    use_relax = True#Temp > 0.0
     lines = []
 
     # --- geometry & base params ---
@@ -149,7 +148,8 @@ def write_mx3_with_regions(path, gridX=512, gridY=512,
         "",
         "// --- Initial state & equilibrium solve ---",
         "m = RandomMag()",
-        "Relax()" if use_relax else "Minimize()",
+        "Run(60e-9) // initial relaxation",
+        "//Relax()" if use_relax else "Minimize()",
         "",
         "// --- Save outputs ---",
         f'SaveAs(m, "final_{idx}")',
@@ -188,100 +188,106 @@ def start_gen(max_runtime_minutes=120):
         training_rows = []
 
     run_id = last_run
+    
+    while True:
+        # Uniform Random Sampling for Target Variables
+            D     = np.random.uniform(range_D[0], range_D[1])
+            sigma = np.random.uniform(range_sigma[0], range_sigma[1])
 
-    for D in D_values:
-        for sigma in sigma_vals:
+            # Gaussian Jitter for Material Constants (±2% std dev)
+            # This makes the CNN robust against small material variations
+            Aex   = np.random.normal(BASE_Aex,  BASE_Aex * 0.02)
+            Ku_mean    = np.random.normal(BASE_Ku,   BASE_Ku * 0.02)
+            Msat  = np.random.normal(BASE_Msat, BASE_Msat * 0.02)
+            alpha = BASE_alpha # Alpha usually fixed, or jitter 1% if desired
+        
 
-            for Ku_mean in Ku_mean_vals:
-                for Msat in Msat_values:
-                    for Aex in Aex_values:
-                        for alpha in alpha_values:
-                            # --------- check physical validity ----------
-                            if not is_valid_combo(Ku_mean, Msat, Aex, D, sigma):
-                                print(f"Skipping run: invalid physical combo D={D*1e3:.2f} σ={sigma:.2f}")
+            # --------- check physical validity ----------
+            #if not is_valid_combo(Ku_mean, Msat, Aex, D, sigma):
+            #    print(f"Skipping run: invalid physical combo D={D*1e3:.2f} σ={sigma:.2f}")
+#
+            #    print_run_diagnostics(Aex, Ku_mean, Msat, D, cellsize[0])               
+#
+            #    continue
 
-                                print_run_diagnostics(Aex, Ku_mean, Msat, D, cellsize[0])               
-
-                                continue
-
-                            for T in Temps:
-                                for s in range(n_seeds):
-                                    # --- 1. check time limit ---
-                                    elapsed = time.time() - start_time
-                                    if elapsed > max_runtime_s:
-                                        print(f"Batch time limit reached ({elapsed/60:.1f} min). Saving progress...")
-                                        pd.DataFrame(rows).to_csv(LOG_CSV, index=False)
-                                        return
-
-
-                                    run_id += 1
-                                    run_dir = OUTPUT_BASE / f"run_{run_id:05d}"
-                                    if run_dir.exists():
-                                        continue  # already generated
-                                    
-                                    run_dir.mkdir(parents=True, exist_ok=True)
+            for T in Temps:
+                for s in range(n_seeds):
+                    # --- 1. check time limit ---
+                    elapsed = time.time() - start_time
+                    if elapsed > max_runtime_s:
+                        print(f"Batch time limit reached ({elapsed/60:.1f} min). Saving progress...")
+                        pd.DataFrame(rows).to_csv(LOG_CSV, index=False)
+                        return
 
 
-                                    # --- 2. write MuMax3 script referencing that OVF ---
-                                    mx3_path = run_dir / f"run_{run_id:05d}.mx3"
-                                    write_mx3_with_regions(
-                                    mx3_path,
-                                    gridX=512, gridY=512,
-                                    Msat=Msat, Aex=Aex, alpha=alpha,
-                                    Dind=D, meanKu=Ku_mean, sigma=sigma,
-                                    blocksX=15, blocksY=15,
-                                    Temp=T, idx=run_id
-                                    )
+                    run_id += 1
+                    run_dir = OUTPUT_BASE / f"run_{run_id:05d}"
+                    if run_dir.exists():
+                        continue  # already generated
+                    
+                    run_dir.mkdir(parents=True, exist_ok=True)
 
 
-                                    # --- 3. save parameters for record ---
-                                    meta = dict(run_id=run_id, Dind=D, sigma=sigma, Temp=T,
-                                                Aex=Aex, Ku_mean=Ku_mean, alpha=alpha,
-                                                Msat=Msat, gridsize=gridsize, cellsize=cellsize)
-                                    (run_dir / "params.json").write_text(json.dumps(meta, indent=2))
+                    # --- 2. write MuMax3 script referencing that OVF ---
+                    mx3_path = run_dir / f"run_{run_id:05d}.mx3"
+                    write_mx3_with_regions(
+                    mx3_path,
+                    gridX=512, gridY=512,
+                    Msat=Msat, Aex=Aex, alpha=alpha,
+                    Dind=D, meanKu=Ku_mean, sigma=sigma,
+                    blocksX=15, blocksY=15,
+                    Temp=T, idx=run_id
+                    )
 
-                                    # --- 4. run MuMax3 ---
-                                    cmd = ["mumax3", "-o", str(run_dir), str(mx3_path)]
-                                    t0 = time.time()
-                                    proc = subprocess.run(cmd, capture_output=True, text=True)
-                                    t1 = time.time()
 
-                                    (run_dir/"mumax_stdout.txt").write_text(proc.stdout)
-                                    (run_dir/"mumax_stderr.txt").write_text(proc.stderr)
+                    # --- 3. save parameters for record ---
+                    meta = dict(run_id=run_id, Dind=D, sigma=sigma, Temp=T,
+                                Aex=Aex, Ku_mean=Ku_mean, alpha=alpha,
+                                Msat=Msat, gridsize=gridsize, cellsize=cellsize)
+                    (run_dir / "params.json").write_text(json.dumps(meta, indent=2))
 
-                                    # --- 5. log summary row ---
-                                    rows.append({
-                                        "run_id": run_id,
-                                        "D_mJpm2": D*1e3,
-                                        "sigma": sigma,
-                                        "Temp": T,
-                                        "returncode": proc.returncode,
-                                        "duration_s": t1 - t0,
-                                        "run_dir": str(run_dir)
-                                    })
-                                    pd.DataFrame(rows).to_csv(LOG_CSV, index=False)
+                    # --- 4. run MuMax3 ---
+                    cmd = ["mumax3", "-o", str(run_dir), str(mx3_path)]
+                    t0 = time.time()
+                    proc = subprocess.run(cmd, capture_output=True, text=True)
+                    t1 = time.time()
 
-                                     # --- New Training Index Row ---
-                                    training_rows.append({
-                                        "run_id": run_id,
-                                        "sample_idx": run_id,
-                                        "realization": s,
-                                        "Dind": D,
-                                        "Ku1": Ku_mean,
-                                        "Aex": Aex,
-                                        "alpha": alpha,
-                                        "Temp": T,
-                                        "sigma": sigma,
-                                        "mx3_path": str(mx3_path),
-                                        "out_dir": str(run_dir),
-                                        "returncode": proc.returncode,
-                                        "timestamp_start": t0,
-                                        "timestamp_end": t1
-                                    })
-                                    pd.DataFrame(training_rows).to_csv(TRAINING_CSV, index=False)
+                    (run_dir/"mumax_stdout.txt").write_text(proc.stdout)
+                    (run_dir/"mumax_stderr.txt").write_text(proc.stderr)
 
-                                    print(f"[{run_id:05d}] D={D*1e3:.2f} σ={sigma:.2f} "
-                                          f"T={T:.0f} rc={proc.returncode} ({t1-t0:.1f}s)")
+                    # --- 5. log summary row ---
+                    rows.append({
+                        "run_id": run_id,
+                        "D_mJpm2": D*1e3,
+                        "sigma": sigma,
+                        "Temp": T,
+                        "returncode": proc.returncode,
+                        "duration_s": t1 - t0,
+                        "run_dir": str(run_dir)
+                    })
+                    pd.DataFrame(rows).to_csv(LOG_CSV, index=False)
+
+                     # --- New Training Index Row ---
+                    training_rows.append({
+                        "run_id": run_id,
+                        "sample_idx": run_id,
+                        "realization": s,
+                        "Dind": D,
+                        "Ku1": Ku_mean,
+                        "Aex": Aex,
+                        "alpha": alpha,
+                        "Temp": T,
+                        "sigma": sigma,
+                        "mx3_path": str(mx3_path),
+                        "out_dir": str(run_dir),
+                        "returncode": proc.returncode,
+                        "timestamp_start": t0,
+                        "timestamp_end": t1
+                    })
+                    pd.DataFrame(training_rows).to_csv(TRAINING_CSV, index=False)
+
+                    print(f"[{run_id:05d}] D={D*1e3:.2f} σ={sigma:.2f} "
+                          f"T={T:.0f} rc={proc.returncode} ({t1-t0:.1f}s)")
 
     # --- 6. save master index ---
     pd.DataFrame(rows).to_csv(LOG_CSV, index=False)

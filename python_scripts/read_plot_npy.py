@@ -86,7 +86,7 @@ def read_plot(in_route: str,
         #plt.title("Raw mz slice from OVF (no reshaping)")
         #plt.xlabel("x")
         #plt.ylabel("y")
-        #plt.show()
+        #plt.show() 
 
         # Flatten vectors and build positions with same ordering (x fastest)
         vectors = arr.reshape(-1, 3).astype(np.float32)    # (N,3)

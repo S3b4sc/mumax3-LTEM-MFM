@@ -1,9 +1,9 @@
 //mumax 3.11.1 [linux_amd64 go1.22.4(gc) CUDA-12.9]
 //commit hash: ee077035
-//CPU info: 12th Gen Intel(R) Core(TM) i7-12650H, Cores: 10, MHz: 400.000
-//GPU info: NVIDIA GeForce RTX 4050 Laptop GPU(5770MB), CUDA Driver 12.9, cc=8.9, using cc=89 PTX
-//OS  info: Ubuntu 22.04.5 LTS, Hostname: santiago-Thin
-//Timestamp: 2025-11-01 12:45:03
+//CPU info: Intel(R) Core(TM) i9-14900HX, Cores: 24, MHz: 800.000
+//GPU info: NVIDIA GeForce RTX 4060 Laptop GPU(7805MB), CUDA Driver 13.0, cc=8.9, using cc=89 PTX
+//OS  info: Ubuntu 22.04.5 LTS, Hostname: Sebas-Legion
+//Timestamp: 2025-11-24 17:33:06
 //(c) Arne Vansteenkiste, Dynamat LAB, Ghent University, Belgium
 //This is free software without any warranty. See license.txt
 //********************************************************************//
@@ -20,12 +20,12 @@ SetGridsize(gridX, gridY, 1)
 SetCellsize(4e-09, 4e-09, 9e-10)
 SetPBC(1, 1, 0)
 //resizing...
-Msat = 1080000.0
-Aex = 9e-12
-alpha = 0.8
-Dind = 0.00033
-meanKu := 210000.0
-sigma := 0.025
+Msat = 1500000.0
+Aex = 3.1e-11
+alpha = 1.0
+Dind = 0.0
+meanKu := 1400000.0
+sigma := 0.0
 blocksX := 15
 blocksY := 15
 baseBx := gridX / blocksX
@@ -45,9 +45,10 @@ anisU = vector(0, 0, 1)
 B_ext = vector(0, 0, 0)
 Temp = 0.0
 m = RandomMag()
-Minimize()
+Run(40e-9)
 // Calculating demag kernel 0 %
 // Calculating demag kernel 100 %
+Relax()
 SaveAs(m, "final_1")
 tablesave()
 //********************************************************************//
@@ -55,5 +56,3 @@ tablesave()
 //See bibtex file in output folder for justification.                 //
 //********************************************************************//
 //   * Vansteenkiste et al., AIP Adv. 4, 107133 (2014).
-//   * Exl et al., J. Appl. Phys. 115, 17D118 (2014).
-//   * Mulkers et al., Phys. Rev. B 95, 144401 (2017).

@@ -27,7 +27,7 @@ def generate_ltem_image(ovf_path:str = "./mumax_files/demo.out/final.ovf", save_
         "sample_xip0": None,
         "mem_V0": None,
         "mem_xip0": None,
-        "mem_thickness": 10.0  # nm
+        "mem_thickness": 16.0  # nm
     })
 
 
@@ -56,7 +56,7 @@ def generate_ltem_image(ovf_path:str = "./mumax_files/demo.out/final.ovf", save_
         flip=False,
         filter_sigma=1.0,
         amorphous_bkg=None,
-        padded_shape=None
+        padded_shape=(1024, 1024)
     )
 
     # ---- 3. Extract image array and display ----
@@ -69,11 +69,11 @@ def generate_ltem_image(ovf_path:str = "./mumax_files/demo.out/final.ovf", save_
     #print(img)
 
     plt.figure(figsize=(6, 5))
-    plt.imshow(np.exp(img), cmap='gray')
-    #plt.imshow(img, cmap='gray')
+    #plt.imshow(np.exp(img), cmap='gray')
+    plt.imshow(img, cmap='gray')
     plt.colorbar(label='Intensity (a.u.)')
     plt.title(rf"$Simulated\ LTEM$" + "\n" + rf"$(\ defocus = {defocus_nm}\ nm)$",loc='left')
-    np.save("./images/original_npy_images/" + '512_trial11.npy', img)
+    #np.save("./images/original_npy_images/" + '512_run8.npy', img)
     plt.savefig(save_path + '512_trial.png')      # To save the image as a cmap
 
 def gen_ltem_dataset(ovf_path:str = "./mumax_files/logs/", save_path:str = './images/LTEM_images/') -> None:

@@ -7,7 +7,9 @@ logs
 *run
 *.out
 html_plots
-
+*.png
+*.pt
+*run_*
 # oommf output files
 *.omf 
 *.odt

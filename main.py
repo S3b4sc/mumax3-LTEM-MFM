@@ -1,4 +1,4 @@
-from python_scripts import read_plot, input_menu, generate_ltem_image, start_ovfs_gen, gen_ltem_dataset, start_gen 
+from python_scripts import read_plot, input_menu, generate_ltem_image, start_ovfs_gen, gen_ltem_dataset, start_gen, run_mz_binary_dataset   
 import subprocess
 import time
 
@@ -26,14 +26,14 @@ if __name__ == '__main__':
             print(f"Simulation time: {end - start} seconds")
 
             # Read and Plot the simulation results
-            read_plot(in_route='./mumax_files/demo.out/final_run9', out_route_html="./html_plots/demo512_run1.html", binary_mz=True)
+            read_plot(in_route='./mumax_files/demo.out/final_run500', out_route_html="./html_plots/demo512_run1.html", binary_mz=True)
             #mumax in_route = './mumax_files/PtCo.out/PtCo'
             #read_plot(in_route='./mumax_files/PtCo.out/PtCo', out_route_html="./html_plots/demo512.html")
     
     if usrChoice == 2:
         #generate_ltem_image(ovf_path='oommf_files/two_layer_withD-Oxs_TimeDriver-Magnetization-00-0005834.omf')
-        #generate_ltem_image(ovf_path='./mumax_files/demo.out/final_run5.ovf')
-        generate_ltem_image(ovf_path='./mumax_dataset_ku_by_block_disorder/run_00001/final_1.ovf', save_path='./images/LTEM_images_ku_by_blocks/')
+        generate_ltem_image(ovf_path='./mumax_files/demo.out/final_run500.ovf')
+        #generate_ltem_image(ovf_path='./mumax_dataset_ku_by_block_disorder/run_00001/final_1.ovf', save_path='./images/LTEM_images_ku_by_blocks/')
 
     elif usrChoice == 3:
         # Run Mumax simulation
@@ -48,14 +48,15 @@ if __name__ == '__main__':
         start_ovfs_gen()
 
     elif usrChoice == 5:
-        gen_ltem_dataset(ovf_path = "./mumax_dataset_ku_by_block_disorder/", save_path = './images/LTEM_images_ku_by_blocks/')
+        #gen_ltem_dataset(ovf_path = "./mumax_dataset_ku_by_block_disorder/", save_path = './images/LTEM_images_ku_by_blocks/')
+        run_mz_binary_dataset(ovf_path = "./mumax_dataset_ku_by_block_disorder/", save_path = './images/LTEM_images_ku_by_blocks_mz_binary/')   
     
     elif usrChoice == 6:
         # Convert mumax ovf output to npy file
         #subprocess.run(['mumax3-convert', '-numpy','./mumax_dataset_ku_by_block_disorder/run_00001/final_1.ovf'])
         #subprocess.run(['mumax3-convert', '-png','./mumax_dataset_ku_by_block_disorder/run_00001/final_1.ovf'])
         # Read and Plot the simulation results
-        read_plot(in_route='./mumax_files/demo.out/final_run8', out_route_html='./html_plots/plot_8number.html', binary_mz=True)
+        read_plot(in_route='./mumax_files/demo.out/final_run500', out_route_html='./html_plots/plot_500number.html', binary_mz=True)
         #read_plot(in_route='./mumax_dataset_ku_by_block_disorder/run_00001/final_1', out_route_html='./html_plots/plot_512corrected.html', binary_mz=True)
 
     elif usrChoice == 7:

@@ -7,14 +7,14 @@ SetGridsize(gridX, gridY, 1)
 SetCellsize(4e-09, 4e-09, 9e-10)
 SetPBC(1,1,0)
 
-Msat  = 1080000.0
-Aex   = 9e-12
-alpha = 0.8
-Dind  = 0.00033
+Msat  = 1500000.0
+Aex   = 3.1e-11
+alpha = 1.0
+Dind  = 0.0
 
 // --- Anisotropy with random block dispersion ---
-meanKu := 210000.0
-sigma  := 0.025
+meanKu := 1400000.0
+sigma  := 0.0
 blocksX := 15
 blocksY := 15
 baseBx := gridX / blocksX
@@ -41,7 +41,8 @@ Temp  = 0.0
 
 // --- Initial state & equilibrium solve ---
 m = RandomMag()
-Minimize()
+Run(40e-9) // initial relaxation
+Relax()
 
 // --- Save outputs ---
 SaveAs(m, "final_1")

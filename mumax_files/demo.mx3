@@ -4,68 +4,71 @@
 // ==========================================================
 
 // --- Geometry and mesh ---
-gridX := 384
-gridY := 384
+gridX := 512
+gridY := 512
 cellX := 4e-9
 cellY := 4e-9
-SetGridsize(gridX, gridY, 2)        // 300×300×1 cells
-SetCellsize(5e-9, 5e-9, 8e-9)     // 4×4×0.9 nm^3 cells (~1 nm film)
-SetPBC(1, 1, 0)                     // periodic in x,y
+SetGridsize(gridX, gridY, 1)        // 300×300×1 cells
+SetCellsize(4e-9, 4e-9, 0.9e-9)    // 4×4×0.9 nm^3 cells (~1 nm film)
+SetPBC(1, 1, 0)                     // periodic in x,y           
 
 // --- Material parameters (Co-based ultrathin film) ---
-Msat  = 1e7                       // A/m
-Aex   = 2.3e-11                     // J/m
-alpha = 1.0                         // high damping → faster relaxation
-Dind  = 1.2e-3                      // J/m^2 (try 1e-3–4e-3)
+Msat  = 1.5e6                       // A/m
+Aex   = 3.1e-11                     // J/m
+alpha = 1                         // high damping → faster relaxation
+Dind  = 0.0e-3                      // J/m^2 (try 1e-3–4e-3)
+//Dbulk = 1.2e-3
 
 // --- Anisotropy with random block dispersion ---
-meanKu := 1e7                     // J/m^3 (mean)
-sigma  := 0.08                      // dimensionless dispersion (std/mean)
+meanKu := 1.4e6                     // J/m^3 (mean)
+sigma  := 0.01875                      // dimensionless dispersion (std/mean)
 
 // Choose block tiling so total regions ≤ 256
 blocksX := 15
 blocksY := 15
 
-//// base block sizes (integer division) in *cells*
-//baseBx := gridX / blocksX
-//baseBy := gridY / blocksY
-//
-//// Assign Ku1 per block with unique region IDs
-//blockWidth  := gridX * cellX / blocksX
-//blockHeight := gridY * cellY / blocksY
-//
-//regionID := 1
-//for bx := 0; bx < blocksX; bx++ {
-//    for by := 0; by < blocksY; by++ {
-//        Ku_local := meanKu * (1 + sigma * randnorm())
-//        defregion(regionID,
-//                  rect(blockWidth, blockHeight).Transl(
-//                      (bx)*blockWidth - (blockWidth*(blocksX))/2 + blockWidth/2,
-//                      (by)*blockHeight - (blockHeight*(blocksY))/2 + blockHeight/2,
-//                      0))
-//        Ku1.SetRegion(regionID, Ku_local)
-//        regionID++
-//    }
-//}
+// base block sizes (integer division) in *cells*
+baseBx := gridX / blocksX
+baseBy := gridY / blocksY
 
-Ku1 = 1e7 
+// Assign Ku1 per block with unique region IDs
+blockWidth  := gridX * cellX / blocksX
+blockHeight := gridY * cellY / blocksY
+
+regionID := 1
+for bx := 0; bx < blocksX; bx++ {
+    for by := 0; by < blocksY; by++ {
+        Ku_local := meanKu * (1 + sigma * randnorm())
+        defregion(regionID,
+                  rect(blockWidth, blockHeight).Transl(
+                      (bx)*blockWidth - (blockWidth*(blocksX))/2 + blockWidth/2,
+                      (by)*blockHeight - (blockHeight*(blocksY))/2 + blockHeight/2,
+                      0))
+        Ku1.SetRegion(regionID, Ku_local)
+        regionID++
+    }
+}
+
+//Ku1 = 1.4e6 
 // global anisotropy axis
 anisU = vector(0, 0, 1)
 
 // --- External magnetic field ---
 // For labyrinth domains like the paper: set 0 T
-// For skyrmion bubbles: try 0.05–0.15 T and minimize again
+// For skyrmion bubbles: try 0.05-0.15 T and minimize again
 //B_ext = vector(0, 0, 0.10)          // T
 
 // --- Temperature (optional) ---
-Temp = 300                        // K
+//Temp = 0.0                   // K
 
 // --- Initial state & equilibrium solve ---
 m = RandomMag()
 //Minimize()                          // equilibrium (use Relax() if prefer)
-Relax()
-//run(10e-9)                               // To solve the Landau-Lifshitz-Gilbert equation
+//Relax()
+run(50e-9)                               // To solve the Landau-Lifshitz-Gilbert equation  1 ps with full LLG to settle precession
+//Relax()              // final tightening
+
 
 // --- Save outputs ---
-SaveAs(m, "final_run9")
+SaveAs(m, "final_run500")
 tablesave()                      // sanity: export the Ku map
