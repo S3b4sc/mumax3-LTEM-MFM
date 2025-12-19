@@ -20,9 +20,11 @@ import time
 import json
 import argparse
 from pathlib import Path
+import math
 
 # ---------------------- directories ----------------------
-OUTPUT_BASE = Path("./mumax_dataset_ku_by_block_disorder")
+#OUTPUT_BASE = Path("./mumax_dataset_ku_by_block_disorder")
+OUTPUT_BASE = Path("./mumax_dataset_ku_by_block_disorder_phy_corrected")
 OUTPUT_BASE.mkdir(parents=True, exist_ok=True)
 LOG_CSV = OUTPUT_BASE / "dataset_index.csv"
 TRAINING_CSV = OUTPUT_BASE / "training_index.csv"
@@ -41,18 +43,14 @@ Temps = [0.0]
 
 # --- Base Material Parameters (Will have Jitter added) ---
 BASE_Aex   = 3.1e-11
-BASE_Ku    = 1.4e6
-BASE_Msat  = 1.5e6
+BASE_Ku    = 1.6e6
+BASE_Msat  = 1.445e6
 BASE_alpha = 1.0
-blocksize = 15                                       # used for visualizing Ku grain scale
+blocksize = 16                                       # used for visualizing Ku grain scale
 
 # ---------------------- helper functions ----------------------
 
 mu0 = 4 * np.pi * 1e-7  # T m/A
-
-import math
-
-mu0 = 4 * math.pi * 1e-7  # vacuum permeability
 
 def compute_micromagnetic_params(A, Ku, Ms, D):
     """Compute micromagnetic characteristic parameters."""
@@ -97,7 +95,7 @@ def write_mx3_with_regions(path, gridX=512, gridY=512,
                            cellX=4e-9, cellY=4e-9, cellZ=0.9e-9,
                            Msat=1.2e6, Aex=1.0e-11, alpha=1.0,
                            Dind=3.5e-3, meanKu=2.5e5, sigma=0.15,
-                           blocksX=15, blocksY=15,
+                           blocksX=16, blocksY=16,
                            Temp=0.0,idx=0):
     """Write a .mx3 file implementing blockwise Ku disorder (≤256 regions)."""
     use_relax = True#Temp > 0.0
@@ -114,7 +112,8 @@ def write_mx3_with_regions(path, gridX=512, gridY=512,
         f"SetCellsize({cellX}, {cellY}, {cellZ})",
         "SetPBC(1,1,0)",
         "",
-        f"Msat  = {Msat}",
+        f"M_val := {Msat}",
+        "Msat = M_val",
         f"Aex   = {Aex}",
         f"alpha = {alpha}",
         f"Dind  = {Dind}",
@@ -128,12 +127,17 @@ def write_mx3_with_regions(path, gridX=512, gridY=512,
         "baseBy := gridY / blocksY",
         "blockWidth  := gridX * cellX / blocksX",
         "blockHeight := gridY * cellY / blocksY",
-        "regionID := 1",
+        "Kd_limit := 0.5 * mu0 * M_val * M_val",
+        "safe_min_Ku := Kd_limit * 1.05",
+        "regionID := 0",
         "for bx := 0; bx < blocksX; bx++ {",
         "    for by := 0; by < blocksY; by++ {",
         "        Ku_local := meanKu * (1 + sigma * randnorm())",
+        "        if Ku_local < safe_min_Ku {",
+        "            Ku_local = safe_min_Ku",
+        "        }",
         "        defregion(regionID,",
-        "                  rect(blockWidth, blockHeight).Transl(",
+        "                  rect(blockWidth*1.01, blockHeight*1.01).Transl(",
         "                      (bx)*blockWidth - (blockWidth*(blocksX))/2 + blockWidth/2,",
         "                      (by)*blockHeight - (blockHeight*(blocksY))/2 + blockHeight/2,",
         "                      0))",
@@ -148,8 +152,8 @@ def write_mx3_with_regions(path, gridX=512, gridY=512,
         "",
         "// --- Initial state & equilibrium solve ---",
         "m = RandomMag()",
-        "Run(60e-9) // initial relaxation",
-        "//Relax()" if use_relax else "Minimize()",
+        "Run(80e-9) // initial relaxation",
+        "Relax()" if use_relax else "Minimize()",
         "",
         "// --- Save outputs ---",
         f'SaveAs(m, "final_{idx}")',
@@ -235,7 +239,7 @@ def start_gen(max_runtime_minutes=120):
                     gridX=512, gridY=512,
                     Msat=Msat, Aex=Aex, alpha=alpha,
                     Dind=D, meanKu=Ku_mean, sigma=sigma,
-                    blocksX=15, blocksY=15,
+                    blocksX=16, blocksY=16,
                     Temp=T, idx=run_id
                     )
 

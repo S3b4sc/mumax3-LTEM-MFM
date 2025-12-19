@@ -1,46 +1,141 @@
-// ==========================================================
-//  Skyrmion / Domain Texture Demo – random Ku dispersion (Option B)
-//  Uses 15×15 blocks (256 regions total) to stay within MuMax3 limits
-// ==========================================================
-
-// --- Geometry and mesh ---
+//// ==========================================================
+////  Skyrmion / Domain Texture Demo – random Ku dispersion (Option B)
+////  Uses 15×15 blocks (256 regions total) to stay within MuMax3 limits
+//// ==========================================================
+//
+//// --- Geometry and mesh ---
+//gridX := 512
+//gridY := 512
+//cellX := 4e-9
+//cellY := 4e-9
+//SetGridsize(gridX, gridY, 1)        // 300×300×1 cells
+//SetCellsize(4e-9, 4e-9, 0.9e-9)    // 4×4×0.9 nm^3 cells (~1 nm film)
+//SetPBC(1, 1, 0)                     // periodic in x,y           
+//
+//// --- Material parameters (Co-based ultrathin film) ---
+////Msat  = 1460871.340081207                       // A/m
+//Aex   = 3.0923790364927386e-11                     // J/m
+//alpha = 1                         // high damping → faster relaxation
+//Dind  = 0.001074252747302878                      // J/m^2 (try 1e-3–4e-3)
+////Dbulk = 1.2e-3
+//
+//// --- Anisotropy with random block dispersion ---
+//meanKu := 1558399.190228228                     // J/m^3 (mean)     // 1.4e6
+//sigma  := 0.14019802314164484                      // dimensionless dispersion (std/mean)
+//
+//// Choose block tiling so total regions ≤ 256
+//blocksX := 16
+//blocksY := 16
+//
+//// base block sizes (integer division) in *cells*
+//baseBx := gridX / blocksX
+//baseBy := gridY / blocksY
+//
+//// Assign Ku1 per block with unique region IDs
+//blockWidth  := gridX * cellX / blocksX
+//blockHeight := gridY * cellY / blocksY
+//
+//
+//// Calculate the theoretical demag limit (approx)
+//// --- Material parameters ---
+//// 1. Define the numeric value first
+//M_val := 1460871.340081207    
+//
+//// 2. Set the simulation parameter
+//Msat = M_val        
+//
+//// 3. Calculate the Shape Anisotropy limit (Kd) using the NUMBER (M_val), not the field.
+//// Kd = 1/2 * mu0 * M^2
+////mu0 := 1.2566e-6
+//Kd_limit := 0.5 * mu0 * M_val * M_val
+//
+//// 4. Add a safety margin (e.g., 5% higher than Kd)
+//// Any Ku below this value will result in gray squares (in-plane magnetization)
+//safe_min_Ku := Kd_limit * 1.05 
+//
+//// --- The Loop ---
+//regionID := 0 
+//for bx := 0; bx < blocksX; bx++ {
+//    for by := 0; by < blocksY; by++ {
+//        
+//        // Calculate random Ku
+//        Ku_local := meanKu * (1 + sigma * randnorm())
+//        
+//        // CLAMP: If random Ku is too weak, boost it to the safe limit
+//        if Ku_local < safe_min_Ku {
+//            Ku_local = safe_min_Ku
+//        }
+//
+//        // Define region (with slight overlap to be safe)
+//        defregion(regionID,
+//                  rect(blockWidth*1.01, blockHeight*1.01).Transl(
+//                      (bx)*blockWidth - (blockWidth*(blocksX))/2 + blockWidth/2,
+//                      (by)*blockHeight - (blockHeight*(blocksY))/2 + blockHeight/2,
+//                      0))
+//                      
+//        Ku1.SetRegion(regionID, Ku_local)
+//        regionID++
+//    }
+//}
+//
+////Ku1 = 1558399.190228228 
+//// global anisotropy axis
+//anisU = vector(0, 0, 1)
+//
+//// --- External magnetic field ---
+//// For labyrinth domains like the paper: set 0 T
+//// For skyrmion bubbles: try 0.05-0.15 T and minimize again
+////B_ext = vector(0, 0, 0.10)          // T
+//
+//// --- Temperature (optional) ---
+////Temp = 0.0                   // K
+//
+//// --- Initial state & equilibrium solve ---
+//m = RandomMag()
+////Minimize()                          // equilibrium (use Relax() if prefer)
+////Relax()
+//run(80e-9)                               // To solve the Landau-Lifshitz-Gilbert equation  1 ps with full LLG to settle precession
+////Relax()              // final tightening
+////Minimize()
+//
+//
+//// --- Save outputs ---
+//SaveAs(m, "final_run500")
+//tablesave()                      // sanity: export the Ku map
+// Auto-generated .mx3 (region-based Ku disorder)
 gridX := 512
 gridY := 512
-cellX := 4e-9
-cellY := 4e-9
-SetGridsize(gridX, gridY, 1)        // 300×300×1 cells
-SetCellsize(4e-9, 4e-9, 0.9e-9)    // 4×4×0.9 nm^3 cells (~1 nm film)
-SetPBC(1, 1, 0)                     // periodic in x,y           
+cellX := 4e-09
+cellY := 4e-09
+SetGridsize(gridX, gridY, 1)
+SetCellsize(4e-09, 4e-09, 9e-10)
+SetPBC(1,1,0)
 
-// --- Material parameters (Co-based ultrathin film) ---
-Msat  = 1.5e6                       // A/m
-Aex   = 3.1e-11                     // J/m
-alpha = 1                         // high damping → faster relaxation
-Dind  = 0.0e-3                      // J/m^2 (try 1e-3–4e-3)
-//Dbulk = 1.2e-3
+M_val := 1431179.3418011381
+Msat = M_val
+Aex   = 3.0265671512490707e-11
+alpha = 1.0
+Dind  = 0.0010809680344761815
 
 // --- Anisotropy with random block dispersion ---
-meanKu := 1.4e6                     // J/m^3 (mean)
-sigma  := 0.01875                      // dimensionless dispersion (std/mean)
-
-// Choose block tiling so total regions ≤ 256
-blocksX := 15
-blocksY := 15
-
-// base block sizes (integer division) in *cells*
+meanKu := 1603979.668650515
+sigma  := 0.08848910794468738
+blocksX := 16
+blocksY := 16
 baseBx := gridX / blocksX
 baseBy := gridY / blocksY
-
-// Assign Ku1 per block with unique region IDs
 blockWidth  := gridX * cellX / blocksX
 blockHeight := gridY * cellY / blocksY
-
-regionID := 1
+Kd_limit := 0.5 * mu0 * M_val * M_val
+regionID := 0
 for bx := 0; bx < blocksX; bx++ {
     for by := 0; by < blocksY; by++ {
         Ku_local := meanKu * (1 + sigma * randnorm())
+        if Ku_local < safe_min_Ku {
+            Ku_local = safe_min_Ku
+        }
         defregion(regionID,
-                  rect(blockWidth, blockHeight).Transl(
+                  rect(blockWidth*1.01, blockHeight*1.01).Transl(
                       (bx)*blockWidth - (blockWidth*(blocksX))/2 + blockWidth/2,
                       (by)*blockHeight - (blockHeight*(blocksY))/2 + blockHeight/2,
                       0))
@@ -49,26 +144,15 @@ for bx := 0; bx < blocksX; bx++ {
     }
 }
 
-//Ku1 = 1.4e6 
-// global anisotropy axis
-anisU = vector(0, 0, 1)
-
-// --- External magnetic field ---
-// For labyrinth domains like the paper: set 0 T
-// For skyrmion bubbles: try 0.05-0.15 T and minimize again
-//B_ext = vector(0, 0, 0.10)          // T
-
-// --- Temperature (optional) ---
-//Temp = 0.0                   // K
+anisU = vector(0,0,1)
+B_ext = vector(0,0,0)
+Temp  = 0.0
 
 // --- Initial state & equilibrium solve ---
 m = RandomMag()
-//Minimize()                          // equilibrium (use Relax() if prefer)
+Run(80e-9) // initial relaxation
 //Relax()
-run(50e-9)                               // To solve the Landau-Lifshitz-Gilbert equation  1 ps with full LLG to settle precession
-//Relax()              // final tightening
-
 
 // --- Save outputs ---
-SaveAs(m, "final_run500")
-tablesave()                      // sanity: export the Ku map
+SaveAs(m, "final_9")
+tablesave()

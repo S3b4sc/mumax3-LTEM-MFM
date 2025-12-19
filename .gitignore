@@ -1,5 +1,9 @@
 # Binary files (Images)
 images 
+mumax_dataset_ku_by_block_disorder_phy
+mumax_dataset_ku_by_block_disorder_phy_100ns
+mumax_dataset_ku_by_block_disorder_phy_130ns
+mumax_dataset_ku_by_block_disorder_phy_corrected
 
 # Text output files/ ovf files
 logs
