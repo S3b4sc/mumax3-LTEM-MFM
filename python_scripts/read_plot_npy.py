@@ -51,7 +51,7 @@ def read_plot(in_route: str,
         # Rearrange so we have (nx, ny, nz, 3) — x fastest
         vectors = np.stack((data.mx, data.my, data.mz), axis=-1)     # (nx, ny, nz, 3)
         positions = np.stack((data.x,data.y,data.z), axis=1)
-
+ 
     else:
 
         ## Convert mumax ovf output to npy file

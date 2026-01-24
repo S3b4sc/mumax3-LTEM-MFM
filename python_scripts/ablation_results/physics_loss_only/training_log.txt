@@ -1,0 +1,109 @@
+Training log for: physics_loss_only
+Started: 2026-01-20 12:26:22
+============================================================
+
+Epoch 001 | Train 4.317e-01 | Val 9.633e-01 | D:60.4% σ:21.9% | LR 1.0e-04 ✓ SAVED
+Epoch 002 | Train 2.307e-01 | Val 2.504e-01 | D:31.7% σ:19.3% | LR 1.0e-04 ✓ SAVED
+Epoch 003 | Train 1.897e-01 | Val 1.688e-01 | D:29.1% σ:21.0% | LR 1.0e-04 ✓ SAVED
+Epoch 004 | Train 1.764e-01 | Val 3.569e-01 | D:36.8% σ:22.7% | LR 1.0e-04
+Epoch 005 | Train 1.356e-01 | Val 1.680e-01 | D:19.9% σ:23.8% | LR 1.0e-04 ✓ SAVED
+Epoch 006 | Train 1.166e-01 | Val 7.789e-02 | D:19.1% σ:22.6% | LR 1.0e-04 ✓ SAVED
+Epoch 007 | Train 1.164e-01 | Val 9.688e-02 | D:17.9% σ:16.9% | LR 1.0e-04
+Epoch 008 | Train 1.047e-01 | Val 1.292e-01 | D:20.7% σ:20.5% | LR 1.0e-04
+Epoch 009 | Train 9.734e-02 | Val 1.920e-01 | D:32.1% σ:17.8% | LR 1.0e-04
+Epoch 010 | Train 9.024e-02 | Val 7.200e-02 | D:14.8% σ:14.6% | LR 1.0e-04 ✓ SAVED
+Epoch 011 | Train 9.105e-02 | Val 8.231e-02 | D:14.4% σ:15.9% | LR 1.0e-04
+Epoch 012 | Train 8.384e-02 | Val 1.086e-01 | D:17.1% σ:12.4% | LR 1.0e-04
+Epoch 013 | Train 8.366e-02 | Val 4.762e-01 | D:58.2% σ:37.5% | LR 1.0e-04
+Epoch 014 | Train 7.560e-02 | Val 1.197e-01 | D:20.5% σ:29.6% | LR 1.0e-04
+Epoch 015 | Train 6.898e-02 | Val 9.252e-02 | D:17.7% σ:15.1% | LR 1.0e-04
+Epoch 016 | Train 7.294e-02 | Val 6.705e-02 | D:10.8% σ:15.1% | LR 1.0e-04 ✓ SAVED
+Epoch 017 | Train 7.318e-02 | Val 1.150e-01 | D:30.3% σ:26.2% | LR 1.0e-04
+Epoch 018 | Train 6.358e-02 | Val 1.104e-01 | D:12.1% σ:20.6% | LR 1.0e-04
+Epoch 019 | Train 5.851e-02 | Val 1.004e-01 | D:16.6% σ:14.8% | LR 1.0e-04
+Epoch 020 | Train 5.645e-02 | Val 9.624e-02 | D:15.1% σ:21.9% | LR 1.0e-04
+Epoch 021 | Train 6.029e-02 | Val 1.096e-01 | D:9.5% σ:19.5% | LR 1.0e-04
+Epoch 022 | Train 5.763e-02 | Val 5.555e-02 | D:10.2% σ:10.1% | LR 1.0e-04 ✓ SAVED
+Epoch 023 | Train 5.349e-02 | Val 5.462e-02 | D:10.9% σ:11.7% | LR 1.0e-04 ✓ SAVED
+Epoch 024 | Train 5.331e-02 | Val 4.836e-02 | D:11.7% σ:10.2% | LR 1.0e-04 ✓ SAVED
+Epoch 025 | Train 4.736e-02 | Val 6.486e-02 | D:8.5% σ:14.1% | LR 1.0e-04
+Epoch 026 | Train 4.890e-02 | Val 8.220e-02 | D:8.7% σ:14.9% | LR 1.0e-04
+Epoch 027 | Train 4.757e-02 | Val 1.224e-01 | D:21.8% σ:19.4% | LR 1.0e-04
+Epoch 028 | Train 4.745e-02 | Val 5.973e-02 | D:9.1% σ:11.1% | LR 1.0e-04
+Epoch 029 | Train 4.426e-02 | Val 4.437e-02 | D:10.8% σ:11.9% | LR 1.0e-04 ✓ SAVED
+Epoch 030 | Train 4.449e-02 | Val 5.514e-02 | D:10.5% σ:12.6% | LR 1.0e-04
+Epoch 031 | Train 4.291e-02 | Val 5.672e-02 | D:9.8% σ:22.6% | LR 1.0e-04
+Epoch 032 | Train 4.244e-02 | Val 9.493e-02 | D:16.6% σ:17.2% | LR 1.0e-04
+Epoch 033 | Train 4.191e-02 | Val 5.193e-02 | D:11.5% σ:9.9% | LR 1.0e-04
+Epoch 034 | Train 3.861e-02 | Val 4.578e-02 | D:8.7% σ:9.9% | LR 1.0e-04
+Epoch 035 | Train 3.863e-02 | Val 6.659e-02 | D:10.2% σ:13.9% | LR 1.0e-04
+Epoch 036 | Train 4.113e-02 | Val 9.038e-02 | D:13.2% σ:11.7% | LR 1.0e-04
+Epoch 037 | Train 3.850e-02 | Val 5.341e-02 | D:8.6% σ:12.4% | LR 1.0e-04
+Epoch 038 | Train 3.471e-02 | Val 6.945e-02 | D:12.5% σ:11.6% | LR 1.0e-04
+Epoch 039 | Train 3.560e-02 | Val 5.966e-02 | D:8.3% σ:10.7% | LR 1.0e-04
+Epoch 040 | Train 3.369e-02 | Val 6.428e-02 | D:7.6% σ:13.7% | LR 1.0e-04
+Epoch 041 | Train 3.382e-02 | Val 5.879e-02 | D:8.4% σ:11.3% | LR 1.0e-04
+Epoch 042 | Train 3.380e-02 | Val 4.572e-02 | D:10.1% σ:10.3% | LR 1.0e-04
+Epoch 043 | Train 3.382e-02 | Val 4.292e-02 | D:9.0% σ:15.2% | LR 1.0e-04 ✓ SAVED
+Epoch 044 | Train 3.319e-02 | Val 3.961e-02 | D:8.4% σ:12.0% | LR 1.0e-04 ✓ SAVED
+Epoch 045 | Train 3.271e-02 | Val 7.633e-02 | D:15.0% σ:10.9% | LR 1.0e-04
+Epoch 046 | Train 3.429e-02 | Val 6.793e-02 | D:15.6% σ:11.4% | LR 1.0e-04
+Epoch 047 | Train 3.039e-02 | Val 6.149e-02 | D:10.7% σ:12.5% | LR 1.0e-04
+Epoch 048 | Train 2.863e-02 | Val 4.284e-02 | D:6.9% σ:9.7% | LR 1.0e-04
+Epoch 049 | Train 2.991e-02 | Val 4.329e-02 | D:8.9% σ:9.9% | LR 1.0e-04
+Epoch 050 | Train 2.995e-02 | Val 3.875e-02 | D:9.3% σ:9.4% | LR 1.0e-04 ✓ SAVED
+Epoch 051 | Train 2.873e-02 | Val 5.592e-02 | D:8.5% σ:12.5% | LR 1.0e-04
+Epoch 052 | Train 2.818e-02 | Val 7.004e-02 | D:9.4% σ:13.9% | LR 1.0e-04
+Epoch 053 | Train 2.610e-02 | Val 5.101e-02 | D:8.3% σ:10.3% | LR 1.0e-04
+Epoch 054 | Train 2.676e-02 | Val 3.793e-02 | D:9.2% σ:10.0% | LR 1.0e-04 ✓ SAVED
+Epoch 055 | Train 2.714e-02 | Val 6.172e-02 | D:7.3% σ:11.0% | LR 1.0e-04
+Epoch 056 | Train 2.643e-02 | Val 4.557e-02 | D:10.3% σ:9.9% | LR 1.0e-04
+Epoch 057 | Train 2.616e-02 | Val 6.859e-02 | D:10.9% σ:12.2% | LR 1.0e-04
+Epoch 058 | Train 2.505e-02 | Val 8.541e-02 | D:7.9% σ:15.7% | LR 1.0e-04
+Epoch 059 | Train 2.425e-02 | Val 4.122e-02 | D:8.1% σ:10.6% | LR 1.0e-04
+Epoch 060 | Train 2.347e-02 | Val 6.370e-02 | D:6.6% σ:12.2% | LR 1.0e-04
+Epoch 061 | Train 2.480e-02 | Val 5.778e-02 | D:7.2% σ:11.5% | LR 1.0e-04
+Epoch 062 | Train 2.373e-02 | Val 5.280e-02 | D:7.4% σ:14.0% | LR 1.0e-04
+Epoch 063 | Train 2.376e-02 | Val 5.720e-02 | D:9.0% σ:17.3% | LR 1.0e-04
+Epoch 064 | Train 2.327e-02 | Val 4.042e-02 | D:10.3% σ:9.9% | LR 1.0e-04
+Epoch 065 | Train 2.285e-02 | Val 4.524e-02 | D:7.1% σ:9.6% | LR 1.0e-04
+Epoch 066 | Train 2.278e-02 | Val 7.670e-02 | D:14.8% σ:17.2% | LR 1.0e-04
+Epoch 067 | Train 2.277e-02 | Val 5.095e-02 | D:7.3% σ:10.2% | LR 1.0e-04
+Epoch 068 | Train 2.435e-02 | Val 6.665e-02 | D:8.5% σ:14.6% | LR 1.0e-04
+Epoch 069 | Train 2.019e-02 | Val 6.398e-02 | D:8.5% σ:13.6% | LR 1.0e-04
+Epoch 070 | Train 2.221e-02 | Val 5.823e-02 | D:8.7% σ:12.5% | LR 5.0e-05
+Epoch 071 | Train 1.881e-02 | Val 3.855e-02 | D:6.8% σ:9.1% | LR 5.0e-05
+Epoch 072 | Train 1.735e-02 | Val 5.478e-02 | D:7.0% σ:12.8% | LR 5.0e-05
+Epoch 073 | Train 1.643e-02 | Val 3.535e-02 | D:6.8% σ:10.9% | LR 5.0e-05 ✓ SAVED
+Epoch 074 | Train 1.771e-02 | Val 3.552e-02 | D:6.1% σ:10.1% | LR 5.0e-05
+Epoch 075 | Train 1.714e-02 | Val 3.511e-02 | D:6.3% σ:9.0% | LR 5.0e-05 ✓ SAVED
+Epoch 076 | Train 1.680e-02 | Val 5.224e-02 | D:8.1% σ:12.3% | LR 5.0e-05
+Epoch 077 | Train 1.629e-02 | Val 4.555e-02 | D:7.7% σ:10.6% | LR 5.0e-05
+Epoch 078 | Train 1.630e-02 | Val 4.260e-02 | D:7.1% σ:9.7% | LR 5.0e-05
+Epoch 079 | Train 1.633e-02 | Val 4.928e-02 | D:7.5% σ:10.7% | LR 5.0e-05
+Epoch 080 | Train 1.573e-02 | Val 3.858e-02 | D:6.3% σ:9.4% | LR 5.0e-05
+Epoch 081 | Train 1.637e-02 | Val 4.779e-02 | D:6.8% σ:10.7% | LR 5.0e-05
+Epoch 082 | Train 1.523e-02 | Val 4.154e-02 | D:7.6% σ:9.5% | LR 5.0e-05
+Epoch 083 | Train 1.517e-02 | Val 4.767e-02 | D:6.4% σ:11.2% | LR 5.0e-05
+Epoch 084 | Train 1.603e-02 | Val 4.141e-02 | D:6.3% σ:10.2% | LR 5.0e-05
+Epoch 085 | Train 1.618e-02 | Val 4.188e-02 | D:7.8% σ:9.9% | LR 5.0e-05
+Epoch 086 | Train 1.571e-02 | Val 5.368e-02 | D:6.4% σ:12.6% | LR 5.0e-05
+Epoch 087 | Train 1.565e-02 | Val 5.911e-02 | D:7.3% σ:13.8% | LR 5.0e-05
+Epoch 088 | Train 1.535e-02 | Val 3.618e-02 | D:6.3% σ:10.3% | LR 5.0e-05
+Epoch 089 | Train 1.514e-02 | Val 4.378e-02 | D:7.3% σ:9.8% | LR 5.0e-05
+Epoch 090 | Train 1.518e-02 | Val 5.962e-02 | D:7.7% σ:13.9% | LR 5.0e-05
+Epoch 091 | Train 1.510e-02 | Val 7.213e-02 | D:7.8% σ:14.8% | LR 2.5e-05
+Epoch 092 | Train 1.437e-02 | Val 3.299e-02 | D:6.0% σ:9.3% | LR 2.5e-05 ✓ SAVED
+Epoch 093 | Train 1.343e-02 | Val 4.072e-02 | D:6.3% σ:10.4% | LR 2.5e-05
+Epoch 094 | Train 1.315e-02 | Val 3.737e-02 | D:6.6% σ:9.4% | LR 2.5e-05
+Epoch 095 | Train 1.330e-02 | Val 4.253e-02 | D:6.6% σ:10.2% | LR 2.5e-05
+Epoch 096 | Train 1.341e-02 | Val 4.163e-02 | D:6.7% σ:10.0% | LR 2.5e-05
+Epoch 097 | Train 1.310e-02 | Val 3.565e-02 | D:6.2% σ:9.7% | LR 2.5e-05
+Epoch 098 | Train 1.298e-02 | Val 3.502e-02 | D:6.2% σ:9.5% | LR 2.5e-05
+Epoch 099 | Train 1.285e-02 | Val 3.898e-02 | D:6.3% σ:10.7% | LR 2.5e-05
+Epoch 100 | Train 1.325e-02 | Val 3.240e-02 | D:6.2% σ:9.2% | LR 2.5e-05 ✓ SAVED
+
+============================================================
+Training completed: 2026-01-20 13:55:05
+Best epoch: 100
+Best val loss: 3.240154e-02

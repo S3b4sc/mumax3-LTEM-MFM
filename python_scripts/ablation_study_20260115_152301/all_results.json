@@ -1,0 +1,42 @@
+{
+  "cnn_baseline__regression_only__filtered": {
+    "experiment_id": "cnn_baseline__regression_only__filtered",
+    "status": "failed",
+    "error": "ReduceLROnPlateau.__init__() got an unexpected keyword argument 'verbose'"
+  },
+  "cnn_baseline__regression_only__full_range": {
+    "experiment_id": "cnn_baseline__regression_only__full_range",
+    "status": "failed",
+    "error": "ReduceLROnPlateau.__init__() got an unexpected keyword argument 'verbose'"
+  },
+  "cnn_baseline__with_spectral__filtered": {
+    "experiment_id": "cnn_baseline__with_spectral__filtered",
+    "status": "failed",
+    "error": "ReduceLROnPlateau.__init__() got an unexpected keyword argument 'verbose'"
+  },
+  "cnn_baseline__with_spectral__full_range": {
+    "experiment_id": "cnn_baseline__with_spectral__full_range",
+    "status": "failed",
+    "error": "ReduceLROnPlateau.__init__() got an unexpected keyword argument 'verbose'"
+  },
+  "pinn__regression_only__filtered": {
+    "experiment_id": "pinn__regression_only__filtered",
+    "status": "failed",
+    "error": "ReduceLROnPlateau.__init__() got an unexpected keyword argument 'verbose'"
+  },
+  "pinn__regression_only__full_range": {
+    "experiment_id": "pinn__regression_only__full_range",
+    "status": "failed",
+    "error": "ReduceLROnPlateau.__init__() got an unexpected keyword argument 'verbose'"
+  },
+  "pinn__with_spectral__filtered": {
+    "experiment_id": "pinn__with_spectral__filtered",
+    "status": "failed",
+    "error": "ReduceLROnPlateau.__init__() got an unexpected keyword argument 'verbose'"
+  },
+  "pinn__with_spectral__full_range": {
+    "experiment_id": "pinn__with_spectral__full_range",
+    "status": "failed",
+    "error": "ReduceLROnPlateau.__init__() got an unexpected keyword argument 'verbose'"
+  }
+}

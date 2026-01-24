@@ -5,6 +5,18 @@ mumax_dataset_ku_by_block_disorder_phy_100ns
 mumax_dataset_ku_by_block_disorder_phy_130ns
 mumax_dataset_ku_by_block_disorder_phy_corrected
 
+# Final ovf and npy files
+*.npy
+*.ovf
+*.omf
+*.csv
+
+
+
+# Final pytorch trained models
+*.pth
+*.pt
+
 # Text output files/ ovf files
 logs
 *table.txt
@@ -80,8 +92,6 @@ coverage.xml
 .pytest_cache/
 cover/
 
-
-
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
 
@@ -93,13 +103,6 @@ celerybeat.pid
 # Cython debug symbols
 cython_debug/
 
-
-# Visual Studio Code
-#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
-#  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#  and can be added to the global gitignore or merged into this file. However, if you prefer, 
-#  you could uncomment the following to ignore the entire vscode folder
-# .vscode/
 
 # PyPI configuration file
 .pypirc

@@ -1,0 +1,48 @@
+# Option A: Conservative PINN (recommended to start)
+LOSS_WEIGHTS = {
+    'regression': 1.0,      # Standard MSE on (D, σ)
+    'energy_ratio': 0.1,    # Energy physics for D (reduced from 0.2)
+    'spectral': 0.1,        # NEW: Spectral width for σ
+}
+
+
+Starting training for 100 epochs...
+  Annealing: physics losses disabled for first 20 epochs
+  Gradient tracking: every 10 batches
+--------------------------------------------------------------------------------
+Epoch 001 | Train 4.859e-01 (R:4.86e-01 E:0.00e+00 S:0.00e+00) | Val 1.610e+00 | D:63.3% σ:43.0% | w=[0.00,0.00] | LR 1.0e-04 *
+Epoch 002 | Train 2.439e-01 (R:2.44e-01 E:0.00e+00 S:0.00e+00) | Val 4.168e-01 | D:40.6% σ:12.2% | w=[0.00,0.00] | LR 1.0e-04 *
+Epoch 004 | Train 1.614e-01 (R:1.61e-01 E:0.00e+00 S:0.00e+00) | Val 1.938e-01 | D:14.2% σ:20.1% | w=[0.00,0.00] | LR 1.0e-04 *
+Epoch 010 | Train 9.582e-02 (R:9.58e-02 E:0.00e+00 S:0.00e+00) | Val 3.430e-01 | D:13.6% σ:34.4% | w=[0.00,0.00] | LR 1.0e-04
+Epoch 013 | Train 8.125e-02 (R:8.12e-02 E:0.00e+00 S:0.00e+00) | Val 1.053e-01 | D:17.7% σ:10.5% | w=[0.00,0.00] | LR 1.0e-04 *
+Epoch 016 | Train 7.029e-02 (R:7.03e-02 E:0.00e+00 S:0.00e+00) | Val 9.201e-02 | D:15.0% σ:10.7% | w=[0.00,0.00] | LR 1.0e-04 *
+Epoch 020 | Train 6.556e-02 (R:6.56e-02 E:0.00e+00 S:0.00e+00) | Val 6.338e-02 | D:6.5% σ:11.1% | w=[0.00,0.00] | LR 1.0e-04 *
+Epoch 025 | Train 5.890e-02 (R:5.50e-02 E:5.94e-01 S:3.50e-02) | Val 4.295e-02 | D:5.0% σ:8.8% | w=[0.01,0.01] | LR 1.0e-04 *
+Epoch 030 | Train 6.127e-02 (R:5.33e-02 E:6.05e-01 S:3.58e-02) | Val 8.871e-02 | D:7.1% σ:14.8% | w=[0.01,0.01] | LR 1.0e-04
+Epoch 040 | Train 4.577e-02 (R:2.92e-02 E:6.27e-01 S:3.63e-02) | Val 9.712e-02 | D:9.5% σ:9.0% | w=[0.02,0.02] | LR 5.0e-05
+Epoch 050 | Train 4.681e-02 (R:2.19e-02 E:6.28e-01 S:3.53e-02) | Val 5.218e-02 | D:4.1% σ:7.9% | w=[0.04,0.04] | LR 2.5e-05
+Epoch 060 | Train 5.029e-02 (R:1.67e-02 E:6.36e-01 S:3.56e-02) | Val 7.271e-02 | D:3.4% σ:9.2% | w=[0.05,0.05] | LR 1.3e-05
+Epoch 070 | Train 5.580e-02 (R:1.44e-02 E:6.26e-01 S:3.61e-02) | Val 6.560e-02 | D:3.4% σ:7.9% | w=[0.06,0.06] | LR 6.3e-06
+Epoch 080 | Train 6.520e-02 (R:1.47e-02 E:6.38e-01 S:3.60e-02) | Val 7.495e-02 | D:3.4% σ:7.5% | w=[0.07,0.07] | LR 3.1e-06
+Epoch 090 | Train 7.043e-02 (R:1.34e-02 E:6.16e-01 S:3.54e-02) | Val 8.041e-02 | D:3.2% σ:7.5% | w=[0.09,0.09] | LR 3.1e-06
+Epoch 100 | Train 7.652e-02 (R:1.25e-02 E:6.05e-01 S:3.55e-02) | Val 9.155e-02 | D:3.3% σ:7.6% | w=[0.10,0.10] | LR 1.6e-06
+--------------------------------------------------------------------------------
+Training complete! Best val loss: 4.2954e-02
+Gradient samples collected: 1230
+✓ Best model restored
+
+
+
+
+================================================================================
+FINAL VALIDATION METRICS (improved_pinn_conservative_v1)
+================================================================================
+D     → R²=0.990, MAE=2.6798e-05, RMSE=3.5177e-05, MAPE=3.3%
+σ     → R²=0.954, MAE=5.9717e-03, RMSE=8.0377e-03, MAPE=7.6%
+================================================================================
+
+Gradient Conflict Analysis:
+  Mean cosine (reg↔energy):   -0.031
+  Mean cosine (reg↔spectral): -0.006
+  Conflict rate (reg↔energy): 45.4%
+  Conflict rate (reg↔spectral): 41.1%

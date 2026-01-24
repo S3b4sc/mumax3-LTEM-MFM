@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 """
-dataset_generator_methodB.py
---------------------------------------------
 Generates randomized MuMax3 simulations with per-cell Ku1 disorder.
 
 Each run folder contains:
@@ -18,16 +16,20 @@ import pandas as pd
 import numpy as np
 import time
 import json
-import argparse
 from pathlib import Path
 import math
+import argparse
 
 # ---------------------- directories ----------------------
-#OUTPUT_BASE = Path("./mumax_dataset_ku_by_block_disorder")
-OUTPUT_BASE = Path("./mumax_dataset_ku_by_block_disorder_phy_corrected")
+OUTPUT_BASE = Path("./mumax_dataset_ku_by_block_disorder_phy_outside_clamp")
+#OUTPUT_BASE = Path("./mumax_dataset_ku_by_block_disorder_phy_corrected_3")
 OUTPUT_BASE.mkdir(parents=True, exist_ok=True)
 LOG_CSV = OUTPUT_BASE / "dataset_index.csv"
 TRAINING_CSV = OUTPUT_BASE / "training_index.csv"
+# ---------------------- thermal management ----------------------
+WORK_BLOCK_SECONDS = 480 * 60    # 40 minutos de trabajo continuo
+SLEEP_SECONDS      = 20 * 60     # 4 minutos de descanso
+
 
 # ---------------------- simulation constants ----------------------
 gridsize = (512, 512, 1)
@@ -37,8 +39,8 @@ n_seeds = 1
 # --- Sampling Ranges ---
 # The CNN will learn to predict values anywhere inside these ranges
 # --- Sampling Ranges (Continuous Uniform) ---
-range_D     = (0.0e-3, 1.5e-3)
-range_sigma = (0.00, 0.15)
+range_D     = (1.6e-3, 2.5e-3)
+range_sigma = (0.17, 0.25)
 Temps = [0.0]
 
 # --- Base Material Parameters (Will have Jitter added) ---
@@ -50,7 +52,42 @@ blocksize = 16                                       # used for visualizing Ku g
 
 # ---------------------- helper functions ----------------------
 
+def atomic_to_csv(df, path: Path):
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    df.to_csv(tmp, index=False)
+    tmp.replace(path)
+
+
 mu0 = 4 * np.pi * 1e-7  # T m/A
+
+def generate_Ku_blocks(meanKu, sigma_nominal, Msat,
+                       blocksX, blocksY):
+    """
+    Generate block-wise Ku with Gaussian disorder + physical clamp.
+    Returns:
+        Ku_blocks (np.ndarray shape [n_blocks])
+        sigma_eff (float)
+        clamp_fraction (float)
+    """
+    n_blocks = blocksX * blocksY
+
+    # Gaussian disorder
+    z = np.random.normal(0.0, 1.0, size=n_blocks)
+    Ku_blocks = meanKu * (1.0 + sigma_nominal * z)
+
+    # Physical clamp
+    Kd_limit = 0.5 * mu0 * Msat**2
+    safe_min_Ku = 1.05 * Kd_limit
+
+    clamped = Ku_blocks < safe_min_Ku
+    Ku_blocks[clamped] = safe_min_Ku
+
+    # Effective sigma (relative)
+    sigma_eff = np.std(Ku_blocks) / np.mean(Ku_blocks)
+    clamp_fraction = clamped.mean()
+
+    return Ku_blocks, sigma_eff, clamp_fraction
+
 
 def compute_micromagnetic_params(A, Ku, Ms, D):
     """Compute micromagnetic characteristic parameters."""
@@ -94,16 +131,24 @@ def is_valid_combo(Ku, Msat, Aex, Dind, sigma):
 def write_mx3_with_regions(path, gridX=512, gridY=512,
                            cellX=4e-9, cellY=4e-9, cellZ=0.9e-9,
                            Msat=1.2e6, Aex=1.0e-11, alpha=1.0,
-                           Dind=3.5e-3, meanKu=2.5e5, sigma=0.15,
+                           Dind=3.5e-3, meanKu=2.5e5,
+                           Ku_blocks=None,
                            blocksX=16, blocksY=16,
-                           Temp=0.0,idx=0):
-    """Write a .mx3 file implementing blockwise Ku disorder (≤256 regions)."""
-    use_relax = True#Temp > 0.0
+                           Temp=0.0, idx=0):
+    """
+    Write a .mx3 file implementing blockwise Ku disorder
+    using Ku values generated externally in Python.
+    """
+    assert Ku_blocks is not None, "Ku_blocks must be provided"
+    assert len(Ku_blocks) == blocksX * blocksY, \
+        "Ku_blocks length must equal blocksX * blocksY"
+
+    use_relax = True
     lines = []
 
     # --- geometry & base params ---
     lines += [
-        "// Auto-generated .mx3 (region-based Ku disorder)",
+        "// Auto-generated .mx3 (region-based Ku disorder, Python-controlled)",
         f"gridX := {gridX}",
         f"gridY := {gridY}",
         f"cellX := {cellX}",
@@ -118,33 +163,31 @@ def write_mx3_with_regions(path, gridX=512, gridY=512,
         f"alpha = {alpha}",
         f"Dind  = {Dind}",
         "",
-        "// --- Anisotropy with random block dispersion ---",
-        f"meanKu := {meanKu}",
-        f"sigma  := {sigma}",
+        "// --- Anisotropy with externally generated block dispersion ---",
         f"blocksX := {blocksX}",
         f"blocksY := {blocksY}",
-        "baseBx := gridX / blocksX",
-        "baseBy := gridY / blocksY",
         "blockWidth  := gridX * cellX / blocksX",
         "blockHeight := gridY * cellY / blocksY",
-        "Kd_limit := 0.5 * mu0 * M_val * M_val",
-        "safe_min_Ku := Kd_limit * 1.05",
         "regionID := 0",
-        "for bx := 0; bx < blocksX; bx++ {",
-        "    for by := 0; by < blocksY; by++ {",
-        "        Ku_local := meanKu * (1 + sigma * randnorm())",
-        "        if Ku_local < safe_min_Ku {",
-        "            Ku_local = safe_min_Ku",
-        "        }",
-        "        defregion(regionID,",
-        "                  rect(blockWidth*1.01, blockHeight*1.01).Transl(",
-        "                      (bx)*blockWidth - (blockWidth*(blocksX))/2 + blockWidth/2,",
-        "                      (by)*blockHeight - (blockHeight*(blocksY))/2 + blockHeight/2,",
-        "                      0))",
-        "        Ku1.SetRegion(regionID, Ku_local)",
-        "        regionID++",
-        "    }",
-        "}",
+    ]
+
+    # --- define regions and assign Ku explicitly ---
+    ku_idx = 0
+    for bx in range(blocksX):
+        for by in range(blocksY):
+            Ku_val = Ku_blocks[ku_idx]
+            lines += [
+                "defregion(regionID,",
+                "  rect(blockWidth*1.01, blockHeight*1.01).Transl(",
+                f"    ({bx})*blockWidth - (blockWidth*(blocksX))/2 + blockWidth/2,",
+                f"    ({by})*blockHeight - (blockHeight*(blocksY))/2 + blockHeight/2,",
+                "    0))",
+                f"Ku1.SetRegion(regionID, {Ku_val})",
+                "regionID++",
+            ]
+            ku_idx += 1
+
+    lines += [
         "",
         "anisU = vector(0,0,1)",
         "B_ext = vector(0,0,0)",
@@ -160,12 +203,17 @@ def write_mx3_with_regions(path, gridX=512, gridY=512,
         "tablesave()",
         ""
     ]
+
     path.write_text("\n".join(lines))
+
 
 # ---------------------- start_gen loop ----------------------
 def start_gen(max_runtime_minutes=120):
+
     start_time = time.time()
     max_runtime_s = max_runtime_minutes * 60
+    
+    last_sleep_time = start_time
 
     # Resume from existing index if present
     if LOG_CSV.exists():
@@ -200,11 +248,15 @@ def start_gen(max_runtime_minutes=120):
 
             # Gaussian Jitter for Material Constants (±2% std dev)
             # This makes the CNN robust against small material variations
-            Aex   = np.random.normal(BASE_Aex,  BASE_Aex * 0.02)
-            Ku_mean    = np.random.normal(BASE_Ku,   BASE_Ku * 0.02)
-            Msat  = np.random.normal(BASE_Msat, BASE_Msat * 0.02)
+            #Aex   = np.random.normal(BASE_Aex,  BASE_Aex * 0.02)
+            #Ku_mean    = np.random.normal(BASE_Ku,   BASE_Ku * 0.02)
+            #Msat  = np.random.normal(BASE_Msat, BASE_Msat * 0.02)
+            #alpha = BASE_alpha # Alpha usually fixed, or jitter 1% if desired
+
+            Aex   = BASE_Aex 
+            Ku_mean    = BASE_Ku 
+            Msat  = BASE_Msat 
             alpha = BASE_alpha # Alpha usually fixed, or jitter 1% if desired
-        
 
             # --------- check physical validity ----------
             #if not is_valid_combo(Ku_mean, Msat, Aex, D, sigma):
@@ -234,21 +286,62 @@ def start_gen(max_runtime_minutes=120):
 
                     # --- 2. write MuMax3 script referencing that OVF ---
                     mx3_path = run_dir / f"run_{run_id:05d}.mx3"
+                    
+                    Ku_blocks, sigma_eff, clamp_fraction = generate_Ku_blocks(
+                        meanKu=Ku_mean,
+                        sigma_nominal=sigma,
+                        Msat=Msat,
+                        blocksX=16,
+                        blocksY=16
+                    )
+                    
                     write_mx3_with_regions(
-                    mx3_path,
-                    gridX=512, gridY=512,
-                    Msat=Msat, Aex=Aex, alpha=alpha,
-                    Dind=D, meanKu=Ku_mean, sigma=sigma,
-                    blocksX=16, blocksY=16,
-                    Temp=T, idx=run_id
+                        mx3_path,
+                        gridX=512, gridY=512,
+                        Msat=Msat, Aex=Aex, alpha=alpha,
+                        Dind=D, meanKu=Ku_mean,
+                        Ku_blocks=Ku_blocks,
+                        blocksX=16, blocksY=16,
+                        Temp=T, idx=run_id
                     )
 
 
+
                     # --- 3. save parameters for record ---
-                    meta = dict(run_id=run_id, Dind=D, sigma=sigma, Temp=T,
-                                Aex=Aex, Ku_mean=Ku_mean, alpha=alpha,
-                                Msat=Msat, gridsize=gridsize, cellsize=cellsize)
+                    meta = dict(
+                        run_id=run_id,
+                        Dind=D,
+                        sigma_nominal=sigma,
+                        sigma_eff=sigma_eff,
+                        clamp_fraction=clamp_fraction,
+                        Temp=T,
+                        Aex=Aex,
+                        Ku_mean=Ku_mean,
+                        alpha=alpha,
+                        Msat=Msat,
+                        gridsize=gridsize,
+                        cellsize=cellsize
+                    )
+
+                    
                     (run_dir / "params.json").write_text(json.dumps(meta, indent=2))
+                    
+                    # --- thermal throttling: periodic sleep ---
+                    now = time.time()
+                    time_since_sleep = now - last_sleep_time
+                    
+                    if time_since_sleep > WORK_BLOCK_SECONDS:
+                        remaining = max_runtime_s - (now - start_time)
+                        if remaining <= 0:
+                            print("Time limit reached during thermal pause window.")
+                            return
+                    
+                        sleep_time = min(SLEEP_SECONDS, remaining)
+                        print(f"Thermal pause: sleeping for {sleep_time/60:.1f} min...")
+                        time.sleep(sleep_time)
+                        last_sleep_time = time.time()
+
+                    
 
                     # --- 4. run MuMax3 ---
                     cmd = ["mumax3", "-o", str(run_dir), str(mx3_path)]
@@ -258,6 +351,14 @@ def start_gen(max_runtime_minutes=120):
 
                     (run_dir/"mumax_stdout.txt").write_text(proc.stdout)
                     (run_dir/"mumax_stderr.txt").write_text(proc.stderr)
+                    
+                    final_ovf = run_dir / f"final_{run_id}.ovf"   # because SaveAs(m, "final_{idx}")
+                    if proc.returncode != 0 or not final_ovf.exists():
+                        print(f"[FAIL] run {run_id:05d} rc={proc.returncode} final_exists={final_ovf.exists()}")
+                        # Option 1: stop the whole batch (recommended)
+                        raise RuntimeError("MuMax failed; stopping to prevent corrupt/incomplete dataset.")
+                        # Option 2: continue but DO NOT add to training_rows
+
 
                     # --- 5. log summary row ---
                     rows.append({
@@ -269,7 +370,8 @@ def start_gen(max_runtime_minutes=120):
                         "duration_s": t1 - t0,
                         "run_dir": str(run_dir)
                     })
-                    pd.DataFrame(rows).to_csv(LOG_CSV, index=False)
+                    
+                    #pd.DataFrame(rows).to_csv(LOG_CSV, index=False)
 
                      # --- New Training Index Row ---
                     training_rows.append({
@@ -281,14 +383,19 @@ def start_gen(max_runtime_minutes=120):
                         "Aex": Aex,
                         "alpha": alpha,
                         "Temp": T,
-                        "sigma": sigma,
+                        "sigma_nominal": sigma,
+                        "sigma_eff": sigma_eff,
+                        "clamp_fraction": clamp_fraction,
                         "mx3_path": str(mx3_path),
                         "out_dir": str(run_dir),
                         "returncode": proc.returncode,
                         "timestamp_start": t0,
                         "timestamp_end": t1
                     })
-                    pd.DataFrame(training_rows).to_csv(TRAINING_CSV, index=False)
+                    #pd.DataFrame(training_rows).to_csv(TRAINING_CSV, index=False)
+                    atomic_to_csv(pd.DataFrame(rows), LOG_CSV)
+                    atomic_to_csv(pd.DataFrame(training_rows), TRAINING_CSV)
+
 
                     print(f"[{run_id:05d}] D={D*1e3:.2f} σ={sigma:.2f} "
                           f"T={T:.0f} rc={proc.returncode} ({t1-t0:.1f}s)")

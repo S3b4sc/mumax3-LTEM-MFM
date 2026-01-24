@@ -102,31 +102,29 @@
 //// --- Save outputs ---
 //SaveAs(m, "final_run500")
 //tablesave()                      // sanity: export the Ku map
-// Auto-generated .mx3 (region-based Ku disorder)
+// ============================================================
+// TEST A: Solo Run() largo, sin Relax()
+// ============================================================
 gridX := 512
 gridY := 512
-cellX := 4e-09
-cellY := 4e-09
 SetGridsize(gridX, gridY, 1)
 SetCellsize(4e-09, 4e-09, 9e-10)
 SetPBC(1,1,0)
 
 M_val := 1431179.3418011381
 Msat = M_val
-Aex   = 3.0265671512490707e-11
-alpha = 1.0
-Dind  = 0.0010809680344761815
+Aex   = 3.0e-11
+alpha = 1.0      // Damping MÁXIMO para convergencia rápida
+Dind  = 0.0012
 
-// --- Anisotropy with random block dispersion ---
 meanKu := 1603979.668650515
-sigma  := 0.08848910794468738
+safe_min_Ku := 1603979.668650515
+sigma  := 0.08
 blocksX := 16
 blocksY := 16
-baseBx := gridX / blocksX
-baseBy := gridY / blocksY
-blockWidth  := gridX * cellX / blocksX
-blockHeight := gridY * cellY / blocksY
-Kd_limit := 0.5 * mu0 * M_val * M_val
+blockWidth  := gridX * 4e-09 / blocksX
+blockHeight := gridY * 4e-09 / blocksY
+
 regionID := 0
 for bx := 0; bx < blocksX; bx++ {
     for by := 0; by < blocksY; by++ {
@@ -143,16 +141,24 @@ for bx := 0; bx < blocksX; bx++ {
         regionID++
     }
 }
-
 anisU = vector(0,0,1)
-B_ext = vector(0,0,0)
-Temp  = 0.0
 
-// --- Initial state & equilibrium solve ---
 m = RandomMag()
-Run(80e-9) // initial relaxation
-//Relax()
 
-// --- Save outputs ---
-SaveAs(m, "final_9")
-tablesave()
+// Monitorear convergencia
+TableAdd(MaxTorque)
+TableAdd(E_total)
+TableAutosave(1e-9)
+
+// === TEST A: Solo Run largo ===
+print("=== Método: Run(500ns) sin Relax ===")
+Run(500e-9)
+print(sprintf("MaxTorque final: %e", MaxTorque))
+
+// Guardar campos
+Save(m)
+Save(B_eff)
+Save(B_exch)
+Save(B_anis)
+Save(B_demag)
+Save(torque)

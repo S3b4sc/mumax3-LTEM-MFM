@@ -1,0 +1,19 @@
+{
+  "name": "no_coherence",
+  "description": "Sin tensor de estructura en entrada, solo gradiente",
+  "model_config": {
+    "use_gradient": true,
+    "use_coherence": false
+  },
+  "loss_weights": {
+    "regression": 1.0,
+    "spectral_sigma": 0.0,
+    "mz_var_sigma": 0.0
+  },
+  "training_params": {
+    "epochs": 100,
+    "use_amp": true,
+    "use_annealing": false,
+    "warmup_epochs": 10
+  }
+}

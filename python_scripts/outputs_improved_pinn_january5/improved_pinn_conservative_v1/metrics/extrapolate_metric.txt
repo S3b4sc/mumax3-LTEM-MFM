@@ -1,0 +1,46 @@
+======================================================================
+SUMMARY TABLE FOR THESIS
+======================================================================
+
+Category            N     D MAPE     σ MAPE Avg Distance
+-------------------------------------------------------
+OOD-D              31     152.5%      11.3%        0.126
+OOD-σ              31       7.1%     145.1%        0.097
+OOD-both           53     151.0%     250.0%        0.191
+ALL               115     112.6%     157.4%        0.148
+-------------------------------------------------------
+
+(Training validation: D MAPE ≈ 3.3%, σ MAPE ≈ 7.6%)
+
+
+============================================================
+OOD EVALUATION RESULTS
+============================================================
+
+Overall OOD Performance:
+  D:  MAPE = 112.6%, R² = 0.872
+  σ:  MAPE = 157.4%, R² = 0.957
+
+Performance by Category:
+  OOD-D      (n= 31): D MAPE = 152.5%, σ MAPE =  11.3%
+  OOD-σ      (n= 31): D MAPE =   7.1%, σ MAPE = 145.1%
+  OOD-both   (n= 53): D MAPE = 151.0%, σ MAPE = 250.0%
+  
+  
+  ============================================================
+MAPE vs DISTANCE FROM TRAINING RANGE
+============================================================
+
+D MAPE by D-distance:
+  Distance 0.02: MAPE = 9.9% (n=43)
+  Distance 0.07: MAPE = 24.2% (n=24)
+  Distance 0.12: MAPE = 46.7% (n=15)
+  Distance 0.17: MAPE = 76.4% (n=15)
+  Distance 0.22: MAPE = 560.9% (n=18)
+
+σ MAPE by σ-distance:
+  Distance 0.02: MAPE = 16.7% (n=46)
+  Distance 0.07: MAPE = 89.8% (n=12)
+  Distance 0.12: MAPE = 238.6% (n=31)
+  Distance 0.16: MAPE = 586.7% (n=15)
+  Distance 0.21: MAPE = 5.4% (n=11)
